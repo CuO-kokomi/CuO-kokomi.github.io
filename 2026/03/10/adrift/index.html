@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>adrift | CuO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="HGAME2026 adrift这道题主要是复现官方wp中的解法，个人感觉太巧妙了。 反编译关键部分： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566__int64 v8[125]; &#x2F;&#x2F; [rsp+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="adrift">
+<meta property="og:url" content="http://example.com/2026/03/10/adrift/index.html">
+<meta property="og:site_name" content="CuO">
+<meta property="og:description" content="HGAME2026 adrift这道题主要是复现官方wp中的解法，个人感觉太巧妙了。 反编译关键部分： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566__int64 v8[125]; &#x2F;&#x2F; [rsp+">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-09T16:03:38.000Z">
+<meta property="article:modified_time" content="2026-03-11T16:08:28.251Z">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="CuO" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">CuO</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-adrift" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/03/10/adrift/" class="article-date">
+  <time class="dt-published" datetime="2026-03-09T16:03:38.000Z" itemprop="datePublished">2026-03-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      adrift
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="HGAME2026-adrift"><a href="#HGAME2026-adrift" class="headerlink" title="HGAME2026 adrift"></a>HGAME2026 adrift</h1><p>这道题主要是复现官方wp中的解法，个人感觉太巧妙了。</p>
+<p>反编译关键部分：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">__int64 v8[<span class="number">125</span>]; <span class="comment">// [rsp+6h] [rbp-3FAh] BYREF</span></span><br><span class="line">__int64 v9; <span class="comment">// [rsp+3F0h] [rbp-10h]</span></span><br><span class="line"></span><br><span class="line">init_canary();</span><br><span class="line">v9 = canary;</span><br><span class="line">    ……</span><br><span class="line"><span class="keyword">switch</span> ( v6[<span class="number">0</span>] )</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;way&gt; &quot;</span>);</span><br><span class="line">        read(<span class="number">0</span>, v8, <span class="number">0x410u</span>LL);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;distance&gt; &quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">200</span> &amp;&amp; dis[i]; ++i )</span><br><span class="line">          ;</span><br><span class="line">        v3 = (_QWORD *)((<span class="type">char</span> *)&amp;str + <span class="number">1304</span> * i);</span><br><span class="line">        *v3 = v8[<span class="number">0</span>];</span><br><span class="line">        v3[<span class="number">124</span>] = v8[<span class="number">124</span>];</span><br><span class="line">        qmemcpy(</span><br><span class="line">          (<span class="type">void</span> *)((<span class="type">unsigned</span> __int64)(v3 + <span class="number">1</span>) &amp; <span class="number">0xFFFFFFFFFFFFFFF8L</span>L),</span><br><span class="line">          (<span class="type">const</span> <span class="type">void</span> *)((<span class="type">char</span> *)v8 - ((<span class="type">char</span> *)v3 - ((<span class="type">unsigned</span> __int64)(v3 + <span class="number">1</span>) &amp; <span class="number">0xFFFFFFFFFFFFFFF8L</span>L))),</span><br><span class="line">          <span class="number">8LL</span> * ((((_DWORD)v3 - (((_DWORD)v3 + <span class="number">8</span>) &amp; <span class="number">0xFFFFFFF8</span>) + <span class="number">1000</span>) &amp; <span class="number">0xFFFFFFF8</span>) &gt;&gt; <span class="number">3</span>));</span><br><span class="line">        <span class="built_in">memset</span>(v8, <span class="number">0</span>, <span class="keyword">sizeof</span>(v8));</span><br><span class="line">        __isoc99_scanf(<span class="string">&quot;%lu&quot;</span>, &amp;dis[i]);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">        show();</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;index&gt; &quot;</span>);</span><br><span class="line">        __isoc99_scanf(<span class="string">&quot;%hd&quot;</span>, v6);</span><br><span class="line">        v4 = v6[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">if</span> ( v6[<span class="number">0</span>] &lt;= <span class="number">0</span> )</span><br><span class="line">          v4 = -v6[<span class="number">0</span>];</span><br><span class="line">        v6[<span class="number">0</span>] = v4;</span><br><span class="line">        <span class="keyword">if</span> ( v4 &gt; <span class="number">200</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">puts</span>(<span class="string">&quot;invalid index&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">printf</span>(<span class="string">&quot;a new distance&gt; &quot;</span>);</span><br><span class="line">          __isoc99_scanf(<span class="string">&quot;%lu&quot;</span>, &amp;dis[v6[<span class="number">0</span>]]);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">show</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 v0; <span class="comment">// rax</span></span><br><span class="line">  __int16 v2; <span class="comment">// [rsp+Eh] [rbp-2h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;index&gt; &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%hd&quot;</span>, &amp;v2);</span><br><span class="line">  LOWORD(v0) = v2;</span><br><span class="line">  <span class="keyword">if</span> ( v2 &lt;= <span class="number">0</span> )</span><br><span class="line">    LOWORD(v0) = -v2;</span><br><span class="line">  v2 = v0;</span><br><span class="line">  LODWORD(v0) = (<span class="type">unsigned</span> __int16)v0;</span><br><span class="line">  <span class="keyword">if</span> ( (__int16)v0 &lt;= <span class="number">199</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    v0 = dis[v2];</span><br><span class="line">    <span class="keyword">if</span> ( v0 )</span><br><span class="line">      LODWORD(v0) = <span class="built_in">printf</span>(<span class="string">&quot;: %lu\n&quot;</span>, dis[v2]);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> v0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>exp：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2026/03/10/adrift/" data-id="cmmm8hg1u000038uugbzpfkh1" data-title="adrift" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/03/06/Heap1sEz/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">Heap1sEz</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/03/">三月 2026</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/03/10/adrift/">adrift</a>
+          </li>
+        
+          <li>
+            <a href="/2026/03/06/Heap1sEz/">Heap1sEz</a>
+          </li>
+        
+          <li>
+            <a href="/2026/03/05/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 CuO<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

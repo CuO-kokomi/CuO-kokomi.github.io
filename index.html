@@ -72,6 +72,50 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-adrift" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/03/10/adrift/" class="article-date">
+  <time class="dt-published" datetime="2026-03-09T16:03:38.000Z" itemprop="datePublished">2026-03-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/03/10/adrift/">adrift</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="HGAME2026-adrift"><a href="#HGAME2026-adrift" class="headerlink" title="HGAME2026 adrift"></a>HGAME2026 adrift</h1><p>这道题主要是复现官方wp中的解法，个人感觉太巧妙了。</p>
+<p>反编译关键部分：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">__int64 v8[<span class="number">125</span>]; <span class="comment">// [rsp+6h] [rbp-3FAh] BYREF</span></span><br><span class="line">__int64 v9; <span class="comment">// [rsp+3F0h] [rbp-10h]</span></span><br><span class="line"></span><br><span class="line">init_canary();</span><br><span class="line">v9 = canary;</span><br><span class="line">    ……</span><br><span class="line"><span class="keyword">switch</span> ( v6[<span class="number">0</span>] )</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;way&gt; &quot;</span>);</span><br><span class="line">        read(<span class="number">0</span>, v8, <span class="number">0x410u</span>LL);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;distance&gt; &quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">200</span> &amp;&amp; dis[i]; ++i )</span><br><span class="line">          ;</span><br><span class="line">        v3 = (_QWORD *)((<span class="type">char</span> *)&amp;str + <span class="number">1304</span> * i);</span><br><span class="line">        *v3 = v8[<span class="number">0</span>];</span><br><span class="line">        v3[<span class="number">124</span>] = v8[<span class="number">124</span>];</span><br><span class="line">        qmemcpy(</span><br><span class="line">          (<span class="type">void</span> *)((<span class="type">unsigned</span> __int64)(v3 + <span class="number">1</span>) &amp; <span class="number">0xFFFFFFFFFFFFFFF8L</span>L),</span><br><span class="line">          (<span class="type">const</span> <span class="type">void</span> *)((<span class="type">char</span> *)v8 - ((<span class="type">char</span> *)v3 - ((<span class="type">unsigned</span> __int64)(v3 + <span class="number">1</span>) &amp; <span class="number">0xFFFFFFFFFFFFFFF8L</span>L))),</span><br><span class="line">          <span class="number">8LL</span> * ((((_DWORD)v3 - (((_DWORD)v3 + <span class="number">8</span>) &amp; <span class="number">0xFFFFFFF8</span>) + <span class="number">1000</span>) &amp; <span class="number">0xFFFFFFF8</span>) &gt;&gt; <span class="number">3</span>));</span><br><span class="line">        <span class="built_in">memset</span>(v8, <span class="number">0</span>, <span class="keyword">sizeof</span>(v8));</span><br><span class="line">        __isoc99_scanf(<span class="string">&quot;%lu&quot;</span>, &amp;dis[i]);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">        show();</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;index&gt; &quot;</span>);</span><br><span class="line">        __isoc99_scanf(<span class="string">&quot;%hd&quot;</span>, v6);</span><br><span class="line">        v4 = v6[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">if</span> ( v6[<span class="number">0</span>] &lt;= <span class="number">0</span> )</span><br><span class="line">          v4 = -v6[<span class="number">0</span>];</span><br><span class="line">        v6[<span class="number">0</span>] = v4;</span><br><span class="line">        <span class="keyword">if</span> ( v4 &gt; <span class="number">200</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">puts</span>(<span class="string">&quot;invalid index&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">          <span class="built_in">printf</span>(<span class="string">&quot;a new distance&gt; &quot;</span>);</span><br><span class="line">          __isoc99_scanf(<span class="string">&quot;%lu&quot;</span>, &amp;dis[v6[<span class="number">0</span>]]);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">show</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  __int64 v0; <span class="comment">// rax</span></span><br><span class="line">  __int16 v2; <span class="comment">// [rsp+Eh] [rbp-2h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;index&gt; &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%hd&quot;</span>, &amp;v2);</span><br><span class="line">  LOWORD(v0) = v2;</span><br><span class="line">  <span class="keyword">if</span> ( v2 &lt;= <span class="number">0</span> )</span><br><span class="line">    LOWORD(v0) = -v2;</span><br><span class="line">  v2 = v0;</span><br><span class="line">  LODWORD(v0) = (<span class="type">unsigned</span> __int16)v0;</span><br><span class="line">  <span class="keyword">if</span> ( (__int16)v0 &lt;= <span class="number">199</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    v0 = dis[v2];</span><br><span class="line">    <span class="keyword">if</span> ( v0 )</span><br><span class="line">      LODWORD(v0) = <span class="built_in">printf</span>(<span class="string">&quot;: %lu\n&quot;</span>, dis[v2]);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> v0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>exp：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2026/03/10/adrift/" data-id="cmmm8hg1u000038uugbzpfkh1" data-title="adrift" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-Heap1sEz" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2026/03/06/Heap1sEz/" class="article-date">
@@ -121,7 +165,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2026/03/06/Heap1sEz/" data-id="cmmj0gasf0000vcuugjhe1cpn" data-title="Heap1sEz" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="http://example.com/2026/03/06/Heap1sEz/" data-id="cmmm8hg1x000138uu95o89ilg" data-title="Heap1sEz" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -172,7 +216,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2026/03/05/hello-world/" data-id="cmmj0gash0001vcuuf447hxp9" data-title="Hello World" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="http://example.com/2026/03/05/hello-world/" data-id="cmmm8hg1y000238uu5wfa9h9u" data-title="Hello World" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -213,6 +257,10 @@
     <h3 class="widget-title">最新文章</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2026/03/10/adrift/">adrift</a>
+          </li>
         
           <li>
             <a href="/2026/03/06/Heap1sEz/">Heap1sEz</a>

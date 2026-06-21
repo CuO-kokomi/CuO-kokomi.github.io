@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"cuo-kokomi.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"default"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="用 IDA Pro 分析 Typora macOS 版（ARM64 Mach-O）的激活逻辑，定位核心类 LicenseManager，厘清「在线激活 + RSA 验签 + AES 本地存储」的完整流程，最终只改 12 字节 + ad-hoc 重签名，完整绕过所有许可证检查。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Typora 激活逻辑逆向 (macOS)">
+<meta property="og:url" content="https://cuo-kokomi.github.io/2026/06/13/typora-license-bypass-macos/index.html">
+<meta property="og:site_name" content="CuO">
+<meta property="og:description" content="用 IDA Pro 分析 Typora macOS 版（ARM64 Mach-O）的激活逻辑，定位核心类 LicenseManager，厘清「在线激活 + RSA 验签 + AES 本地存储」的完整流程，最终只改 12 字节 + ad-hoc 重签名，完整绕过所有许可证检查。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-13T08:25:00.000Z">
+<meta property="article:modified_time" content="2026-06-21T15:09:25.115Z">
+<meta property="article:author" content="CuO">
+<meta property="article:tag" content="ARM64">
+<meta property="article:tag" content="IDA Pro">
+<meta property="article:tag" content="Typora">
+<meta property="article:tag" content="macOS">
+<meta property="article:tag" content="逆向工程">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://cuo-kokomi.github.io/2026/06/13/typora-license-bypass-macos/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cuo-kokomi.github.io/2026/06/13/typora-license-bypass-macos/","path":"2026/06/13/typora-license-bypass-macos/","title":"Typora 激活逻辑逆向 (macOS)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Typora 激活逻辑逆向 (macOS) | CuO</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">CuO</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="nav-text">基本信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B"><span class="nav-text">分析过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AE%9A%E4%BD%8D%E6%A0%B8%E5%BF%83%E7%B1%BB"><span class="nav-text">1. 定位核心类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%BF%80%E6%B4%BB%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88"><span class="nav-text">2. 激活流程概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%AE%B8%E5%8F%AF%E8%AF%81%E6%A0%BC%E5%BC%8F"><span class="nav-text">3. 许可证格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%9C%A8%E7%BA%BF%E6%BF%80%E6%B4%BB"><span class="nav-text">4. 在线激活</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81"><span class="nav-text">5. 签名验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8"><span class="nav-text">6. 本地存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E8%AF%95%E7%94%A8%E6%9C%9F%E4%B8%8E-UI-%E6%8E%A7%E5%88%B6"><span class="nav-text">7. 试用期与 UI 控制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%95%E8%BF%87%E6%96%B9%E6%A1%88"><span class="nav-text">绕过方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E8%B5%B0%E6%AD%A3%E5%B8%B8%E6%BF%80%E6%B4%BB%EF%BC%9F"><span class="nav-text">为什么不能走正常激活？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86%EF%BC%9AObjC-%E7%9A%84%E2%80%9D%E6%96%B9%E6%B3%95%E2%80%9D%E4%B8%8E%E2%80%9D%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E2%80%9D"><span class="nav-text">背景知识：ObjC 的”方法”与”成员变量”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Patch-1-hasLicense-%E6%96%B9%E6%B3%95%E5%A7%8B%E7%BB%88%E8%BF%94%E5%9B%9E-true"><span class="nav-text">Patch 1: hasLicense 方法始终返回 true</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Patch-2-hasLicense-%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E5%A7%8B%E7%BB%88%E8%AE%BE%E4%B8%BA-true"><span class="nav-text">Patch 2: _hasLicense 成员变量始终设为 true</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E5%A4%84-Patch-%E7%9A%84%E9%85%8D%E5%90%88%E5%85%B3%E7%B3%BB"><span class="nav-text">两处 Patch 的配合关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%8D%E6%96%B0%E7%AD%BE%E5%90%8D"><span class="nav-text">重新签名</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">CuO</p>
+  <div class="site-description" itemprop="description">Security Research & CTF Writeups</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/CuO-kokomi" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CuO-kokomi" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+<div class="post-list-widget motion-element">
+  <div class="post-list-widget-title">
+    <i class="fa fa-folder-open"></i> 文章列表
+  </div>
+  <ul class="post-list-widget-list">
+    <li class="post-list-widget-item">
+      <a href="/" title=""></a>
+    </li>
+    <li class="post-list-widget-item">
+      <a href="/" title=""></a>
+    </li>
+    <li class="post-list-widget-item">
+      <a href="/" title=""></a>
+    </li>
+    <li class="post-list-widget-item">
+      <a href="/" title=""></a>
+    </li>
+    <li class="post-list-widget-item">
+      <a href="/" title=""></a>
+    </li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://cuo-kokomi.github.io/2026/06/13/typora-license-bypass-macos/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CuO">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CuO">
+      <meta itemprop="description" content="Security Research & CTF Writeups">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Typora 激活逻辑逆向 (macOS) | CuO">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Typora 激活逻辑逆向 (macOS)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-06-13 16:25:00" itemprop="dateCreated datePublished" datetime="2026-06-13T16:25:00+08:00">2026-06-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Security-Research/" itemprop="url" rel="index"><span itemprop="name">Security Research</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>用 IDA Pro 分析 Typora macOS 版（ARM64 Mach-O）的激活逻辑，定位核心类 <code>LicenseManager</code>，厘清「在线激活 + RSA 验签 + AES 本地存储」的完整流程，最终只改 <strong>12 字节</strong> + ad-hoc 重签名，完整绕过所有许可证检查。</p>
+<span id="more"></span>
+
+<h2 id="基本信息"><a href="#基本信息" class="headerlink" title="基本信息"></a>基本信息</h2><ul>
+<li><strong>文件</strong>: <code>app</code> (macOS Mach-O 64-bit, ARM64)</li>
+<li><strong>工具</strong>: IDA Pro</li>
+<li><strong>目标</strong>: 分析并绕过 Typora 的激活逻辑</li>
+</ul>
+<h2 id="分析过程"><a href="#分析过程" class="headerlink" title="分析过程"></a>分析过程</h2><h3 id="1-定位核心类"><a href="#1-定位核心类" class="headerlink" title="1. 定位核心类"></a>1. 定位核心类</h3><p>通过字符串搜索 <code>activate</code>、<code>license</code>、<code>fillLicense</code> 等关键词，定位到核心类 <strong><code>LicenseManager</code></strong>，其中包含完整的激活逻辑。</p>
+<h3 id="2-激活流程概览"><a href="#2-激活流程概览" class="headerlink" title="2. 激活流程概览"></a>2. 激活流程概览</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">用户输入 email + license code</span><br><span class="line">        |</span><br><span class="line">        v</span><br><span class="line">quickValidateLicense:  (本地格式校验)</span><br><span class="line">        |</span><br><span class="line">        v</span><br><span class="line">POST https://store.typora.io/api/client/activate  (在线验证)</span><br><span class="line">        |</span><br><span class="line">        v</span><br><span class="line">verifySig:  (RSA-2048 + SHA256 验证服务器返回签名)</span><br><span class="line">        |</span><br><span class="line">        v</span><br><span class="line">writeLicenseInfo:with:from:  (AES-256加密写入本地)</span><br><span class="line">        |</span><br><span class="line">        v</span><br><span class="line">postNotification -&gt; &quot;fillLicense&quot; -&gt; UI移除UNREGISTERED角标</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-许可证格式"><a href="#3-许可证格式" class="headerlink" title="3. 许可证格式"></a>3. 许可证格式</h3><p><strong><code>-[LicenseManager quickValidateLicense:]</code></strong> (<code>0x10006B464</code>) 执行本地校验：</p>
+<ul>
+<li>正则: <code>^([A-Z0-9]{6}-){3}[A-Z0-9]{6}$</code>，即 <code>XXXXXX-XXXXXX-XXXXXX-XXXXXX</code></li>
+<li>字符集: <code>L23456789ABCDEFGHJKMNPQRSTUVWXYZ</code>（31字符，排除 0&#x2F;1&#x2F;I&#x2F;O 等易混淆字符）</li>
+<li>校验和: <code>genCheckSum:</code> 对去掉连字符的字符串，隔位取字符在字符集中的索引累加，对 31 取模生成 2 位校验字符，与末尾 2 位比对</li>
+</ul>
+<h3 id="4-在线激活"><a href="#4-在线激活" class="headerlink" title="4. 在线激活"></a>4. 在线激活</h3><p><strong><code>-[LicenseManager activate:with:force:callback:]</code></strong> (<code>0x10006D284</code>) 构造 POST 请求:</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v</code></td>
+<td>版本号</td>
+</tr>
+<tr>
+<td><code>license</code></td>
+<td>序列号</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>邮箱</td>
+</tr>
+<tr>
+<td><code>l</code></td>
+<td>设备标签 (deviceLabel)</td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td>设备指纹 (fingerPrintNew)</td>
+</tr>
+<tr>
+<td><code>u</code></td>
+<td>用户ID</td>
+</tr>
+<tr>
+<td><code>force</code></td>
+<td>是否强制激活</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>许可证类型</td>
+</tr>
+</tbody></table>
+<p>服务器返回 JSON 中 <code>code</code> 字段决定结果：</p>
+<table>
+<thead>
+<tr>
+<th>code</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>成功，调用 <code>writeLicenseInfo:with:from:</code> 保存</td>
+</tr>
+<tr>
+<td>1</td>
+<td>设备数超限，弹窗选择是否强制激活</td>
+</tr>
+<tr>
+<td>-1 &#x2F; -2</td>
+<td>失败</td>
+</tr>
+</tbody></table>
+<h3 id="5-签名验证"><a href="#5-签名验证" class="headerlink" title="5. 签名验证"></a>5. 签名验证</h3><p><strong><code>-[LicenseManager verifySig:]</code></strong> (<code>0x10006BFF0</code>):</p>
+<ol>
+<li>取返回字典所有 key 按字母排序</li>
+<li>排除 <code>sig</code>、<code>oldSig</code>、<code>oldFinger</code></li>
+<li>其余字段值按序拼接</li>
+<li>调用 <strong><code>+[Crypto verify:with:]</code></strong> 用硬编码的 RSA-2048 公钥 + SHA-256 验签</li>
+</ol>
+<h3 id="6-本地存储"><a href="#6-本地存储" class="headerlink" title="6. 本地存储"></a>6. 本地存储</h3><ul>
+<li><strong>路径</strong>: <code>{AppSupport}/.{fingerPrintNew}</code>（隐藏文件）</li>
+<li><strong>加密</strong>: AES-256-ECB, PKCS7 padding</li>
+<li><strong>密钥</strong>: <code>SHA256(IOPlatformUUID + &quot;typora-license&quot;)</code> 前 32 字节</li>
+<li><strong>数据</strong>: <code>NSKeyedArchiver</code> 序列化的 <code>licenseDict</code> 字典</li>
+</ul>
+<h3 id="7-试用期与-UI-控制"><a href="#7-试用期与-UI-控制" class="headerlink" title="7. 试用期与 UI 控制"></a>7. 试用期与 UI 控制</h3><ul>
+<li><code>dayRemains</code> → <code>dayRemainsFrom:(15)</code>: <strong>15天</strong>免费试用</li>
+<li><code>cannotContonueUse:</code>: 超过 <strong>20天</strong> 且无许可证则强制要求激活</li>
+<li><code>postNotification</code>: 根据 <code>_hasLicense</code> ivar 发送 <code>fillLicense</code> 或 <code>unfillLicense</code> 通知<ul>
+<li><code>fillLicense</code> → JS 执行 <code>File.option.hasLicense = true</code>，移除 UNREGISTERED 角标</li>
+<li><code>unfillLicense</code> → JS 执行 <code>File.option.hasLicense = false</code>，显示角标</li>
+</ul>
+</li>
+</ul>
+<h2 id="绕过方案"><a href="#绕过方案" class="headerlink" title="绕过方案"></a>绕过方案</h2><h3 id="为什么不能走正常激活？"><a href="#为什么不能走正常激活？" class="headerlink" title="为什么不能走正常激活？"></a>为什么不能走正常激活？</h3><p>激活流程是 <strong>在线验证</strong>：客户端把序列号 POST 到 <code>store.typora.io</code>，服务器返回的数据带有 <strong>RSA-2048 签名</strong>，客户端用硬编码的公钥验签。我们没有私钥，无法伪造合法的服务器响应，所以必须从 <strong>本地判断逻辑</strong> 入手。</p>
+<h3 id="背景知识：ObjC-的”方法”与”成员变量”"><a href="#背景知识：ObjC-的”方法”与”成员变量”" class="headerlink" title="背景知识：ObjC 的”方法”与”成员变量”"></a>背景知识：ObjC 的”方法”与”成员变量”</h3><p>在分析 patch 之前，需要理解 Objective-C 中一个关键区别：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@interface LicenseManager &#123;</span><br><span class="line">    NSNumber *_hasLicense;   // 成员变量 (ivar)，存储在对象内存中</span><br><span class="line">&#125;</span><br><span class="line">- (BOOL)hasLicense;          // 方法，被其他代码调用</span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong><code>_hasLicense</code> (ivar)</strong>: 对象里的一个字段，存的是 <code>@(YES)</code> 或 <code>@(NO)</code>，由 <code>readLicenseInfo</code> 在启动时根据磁盘上的许可证文件来设置。</li>
+<li><strong><code>hasLicense</code> (方法)</strong>: 一个可以被外部调用的函数，原本会读取 ivar 并返回其值。</li>
+</ul>
+<p>虽然名字相似，但它们在不同的地方被使用。<strong>两个都要 patch 才能完整绕过。</strong></p>
+<hr>
+<h3 id="Patch-1-hasLicense-方法始终返回-true"><a href="#Patch-1-hasLicense-方法始终返回-true" class="headerlink" title="Patch 1: hasLicense 方法始终返回 true"></a>Patch 1: <code>hasLicense</code> 方法始终返回 true</h3><p><strong>函数</strong>: <code>-[LicenseManager hasLicense]</code><br><strong>地址</strong>: <code>0x100069FB8</code></p>
+<h4 id="原始伪代码"><a href="#原始伪代码" class="headerlink" title="原始伪代码"></a>原始伪代码</h4><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 原始逻辑：从对象的 _hasLicense 成员变量读取实际值</span></span><br><span class="line">- (<span class="type">BOOL</span>)hasLicense &#123;</span><br><span class="line">    <span class="built_in">NSNumber</span> *val = <span class="keyword">self</span>-&gt;_hasLicense;  <span class="comment">// 偏移 0x18 处加载</span></span><br><span class="line">    <span class="keyword">if</span> (val == <span class="literal">nil</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NO</span>;   <span class="comment">// 没有值，返回 false</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> [val boolValue];  <span class="comment">// 返回实际的布尔值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="原始汇编-ARM64"><a href="#原始汇编-ARM64" class="headerlink" title="原始汇编 (ARM64)"></a>原始汇编 (ARM64)</h4><figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x100069FB8</span>: <span class="keyword">LDR</span> <span class="built_in">X0</span>, [<span class="built_in">X0</span>, <span class="number">#0x18</span>]   <span class="comment">; X0 = self-&gt;_hasLicense (从对象偏移0x18处加载)</span></span><br><span class="line"><span class="number">0x100069FBC</span>: <span class="keyword">CBZ</span> <span class="built_in">X0</span>, ret_false      <span class="comment">; 如果 X0 == 0 (nil)，跳转到返回false的分支</span></span><br><span class="line">             ...                     <span class="comment">; 后续调用 [_hasLicense boolValue] 并返回</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>ARM64 小课堂</strong>:</p>
+<ul>
+<li><code>LDR X0, [X0, #0x18]</code>：从地址 <code>X0+0x18</code> 读取 8 字节到 X0。在 ObjC 方法中，X0 就是 <code>self</code>，0x18 是 <code>_hasLicense</code> 这个 ivar 在对象内存布局中的偏移。</li>
+<li><code>CBZ X0, label</code>：Compare and Branch if Zero。如果 X0 为 0（即 <code>_hasLicense</code> 为 nil），就跳转。</li>
+</ul>
+</blockquote>
+<h4 id="Patch-后伪代码"><a href="#Patch-后伪代码" class="headerlink" title="Patch 后伪代码"></a>Patch 后伪代码</h4><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// patch 后：无论如何都返回 true</span></span><br><span class="line">- (<span class="type">BOOL</span>)hasLicense &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">YES</span>;  <span class="comment">// 直接返回 1，不再读取 ivar</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Patch-后汇编"><a href="#Patch-后汇编" class="headerlink" title="Patch 后汇编"></a>Patch 后汇编</h4><figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x100069FB8</span>: <span class="keyword">MOV</span> <span class="built_in">W0</span>, <span class="number">#1</span>    <span class="comment">; W0 = 1（函数返回值 = true）</span></span><br><span class="line"><span class="number">0x100069FBC</span>: RET            <span class="comment">; 直接返回</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>ARM64 小课堂</strong>:</p>
+<ul>
+<li><code>MOV W0, #1</code>：将立即数 1 写入 W0 寄存器。ARM64 中函数返回值放在 X0&#x2F;W0 中，W0 是 X0 的低 32 位。</li>
+<li><code>RET</code>：函数返回，等价于 <code>BX LR</code>。</li>
+</ul>
+</blockquote>
+<h4 id="具体字节修改"><a href="#具体字节修改" class="headerlink" title="具体字节修改"></a>具体字节修改</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">文件偏移: 0x100069FB8 (需根据 IDA 基址 0x100000000 换算实际文件偏移)</span><br><span class="line"></span><br><span class="line">原始字节: 00 0C 40 F9  40 00 00 B4</span><br><span class="line">修改字节: 20 00 80 52  C0 03 5F D6</span><br><span class="line">          ^^^^^^^^^^^  ^^^^^^^^^^^</span><br><span class="line">          MOV W0, #1    RET</span><br></pre></td></tr></table></figure>
+
+<h4 id="这个-patch-影响了哪些调用者？"><a href="#这个-patch-影响了哪些调用者？" class="headerlink" title="这个 patch 影响了哪些调用者？"></a>这个 patch 影响了哪些调用者？</h4><p><code>hasLicense</code> 方法在以下两个关键位置被调用：</p>
+<p><strong>调用者 1: <code>cannotContonueUse:</code></strong> — 控制是否强制退出 app</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 伪代码</span></span><br><span class="line">- (<span class="type">BOOL</span>)cannotContonueUse:(<span class="type">BOOL</span>)strict &#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">self</span>._appStarted &amp;&amp; !strict)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ★ 这里调用 hasLicense 方法</span></span><br><span class="line">    <span class="keyword">if</span> ([<span class="keyword">self</span> hasLicense])   <span class="comment">// patch 后始终为 YES</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NO</span>;           <span class="comment">// → 永远走这条路，不会强制退出</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 以下代码永远不会被执行了</span></span><br><span class="line">    <span class="keyword">if</span> ([<span class="keyword">self</span> dayRemainsFrom:<span class="number">20</span>] &lt; <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">YES</span>;  <span class="comment">// 超过20天 → 强制退出</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>patch 前：试用期超过 20 天且没有许可证 → 弹窗强制退出。<br>patch 后：<strong>永远不会强制退出</strong>。</p>
+<p><strong>调用者 2: <code>windowDidLoad</code></strong> — 控制是否注入 UNREGISTERED 角标的 JS</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 伪代码 (TyWindowController)</span></span><br><span class="line">- (<span class="type">void</span>)windowDidLoad &#123;</span><br><span class="line">    <span class="comment">// ... 窗口初始化 ...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册通知监听</span></span><br><span class="line">    [[<span class="built_in">NSNotificationCenter</span> defaultCenter]</span><br><span class="line">        addObserver:<span class="keyword">self</span> selector:<span class="keyword">@selector</span>(onFillLicense)</span><br><span class="line">        name:<span class="string">@&quot;fillLicense&quot;</span> object:<span class="literal">nil</span>];</span><br><span class="line">    [[<span class="built_in">NSNotificationCenter</span> defaultCenter]</span><br><span class="line">        addObserver:<span class="keyword">self</span> selector:<span class="keyword">@selector</span>(onUnfillLicense)</span><br><span class="line">        name:<span class="string">@&quot;unfillLicense&quot;</span> object:<span class="literal">nil</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ★ 这里调用 hasLicense 方法</span></span><br><span class="line">    LicenseManager *mgr = [LicenseManager sharedInstance];</span><br><span class="line">    <span class="keyword">if</span> (![mgr hasLicense]) &#123;   <span class="comment">// patch 后始终为 YES</span></span><br><span class="line">        <span class="comment">// 以下代码永远不会被执行了</span></span><br><span class="line">        <span class="built_in">NSString</span> *js = [<span class="keyword">self</span> jsWhenUnfillLicense];</span><br><span class="line">        <span class="comment">// 这段 JS 会在页面上注入一个 &quot;UNREGISTERED ×&quot; 的浮动角标</span></span><br><span class="line">        [bridge presetScriptOnEnd:js];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>patch 前：窗口加载时，如果没有许可证就注入 UNREGISTERED 角标。<br>patch 后：<strong>窗口加载时永远不注入角标</strong>。</p>
+<hr>
+<h3 id="Patch-2-hasLicense-成员变量始终设为-true"><a href="#Patch-2-hasLicense-成员变量始终设为-true" class="headerlink" title="Patch 2: _hasLicense 成员变量始终设为 true"></a>Patch 2: <code>_hasLicense</code> 成员变量始终设为 true</h3><p><strong>函数</strong>: <code>-[LicenseManager readLicenseInfo]</code> 的内部逻辑<br><strong>地址</strong>: <code>0x10006B898</code></p>
+<h4 id="为什么还需要这个-patch？"><a href="#为什么还需要这个-patch？" class="headerlink" title="为什么还需要这个 patch？"></a>为什么还需要这个 patch？</h4><p>Patch 1 只改了 <code>hasLicense</code> <strong>方法</strong>的返回值。但 <code>_hasLicense</code> <strong>成员变量</strong>仍然会被 <code>readLicenseInfo</code> 设置为真实值。</p>
+<p>程序中有些地方 <strong>不调用方法，而是直接读取 ivar</strong>，最关键的就是 <code>postNotification</code>：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 伪代码: postNotification 直接读取 _hasLicense ivar，不走 hasLicense 方法</span></span><br><span class="line">- (<span class="type">void</span>)postNotification &#123;</span><br><span class="line">    <span class="type">BOOL</span> licensed = [<span class="keyword">self</span>-&gt;_hasLicense boolValue];  <span class="comment">// ★ 直接读 ivar！</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (licensed) &#123;</span><br><span class="line">        <span class="comment">// 发送 &quot;fillLicense&quot; 通知 → UI 移除角标</span></span><br><span class="line">        [[<span class="built_in">NSNotificationCenter</span> defaultCenter]</span><br><span class="line">            postNotificationName:<span class="string">@&quot;fillLicense&quot;</span> object:<span class="literal">nil</span>];</span><br><span class="line">        <span class="comment">// 在所有窗口执行 JS</span></span><br><span class="line">        [delegate execOnEachWindow:<span class="string">@&quot;File.option.hasLicense = true&quot;</span>];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 发送 &quot;unfillLicense&quot; 通知 → UI 显示角标</span></span><br><span class="line">        [[<span class="built_in">NSNotificationCenter</span> defaultCenter]</span><br><span class="line">            postNotificationName:<span class="string">@&quot;unfillLicense&quot;</span> object:<span class="literal">nil</span>];</span><br><span class="line">        <span class="comment">// 在所有窗口执行 JS</span></span><br><span class="line">        [delegate execOnEachWindow:<span class="string">@&quot;File.option.hasLicense = false&quot;</span>];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果只做 Patch 1，<code>_hasLicense</code> ivar 仍然是 <code>@(NO)</code>，<code>postNotification</code> 还是会走 else 分支，显示 UNREGISTERED 角标。</p>
+<h4 id="原始伪代码：readLicenseInfo-中设置-hasLicense-的逻辑"><a href="#原始伪代码：readLicenseInfo-中设置-hasLicense-的逻辑" class="headerlink" title="原始伪代码：readLicenseInfo 中设置 _hasLicense 的逻辑"></a>原始伪代码：readLicenseInfo 中设置 _hasLicense 的逻辑</h4><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="type">void</span>)readLicenseInfo &#123;</span><br><span class="line">    <span class="comment">// 1. 从磁盘读取加密的许可证文件并解密</span></span><br><span class="line">    <span class="built_in">NSString</span> *path = [<span class="keyword">self</span> recordFilePathNew];</span><br><span class="line">    <span class="keyword">self</span>._licenseDict = [<span class="keyword">self</span> _readLicenseInfo:path];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 检查字典里有没有 &quot;email&quot; 和 &quot;license&quot; 两个 key</span></span><br><span class="line">    <span class="type">BOOL</span> v18;</span><br><span class="line">    <span class="type">id</span> email = [<span class="keyword">self</span>._licenseDict objectForKey:<span class="string">@&quot;email&quot;</span>];</span><br><span class="line">    <span class="keyword">if</span> (email != <span class="literal">nil</span>) &#123;</span><br><span class="line">        <span class="type">id</span> license = [<span class="keyword">self</span>._licenseDict objectForKey:<span class="string">@&quot;license&quot;</span>];</span><br><span class="line">        v18 = (license != <span class="literal">nil</span>);   <span class="comment">// 两个都存在才算有许可证</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        v18 = <span class="literal">NO</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3. ★★★ 这里就是 patch 点 ★★★</span></span><br><span class="line">    <span class="comment">// v19 = [self hasLicense] 的返回值 (patch 1 后始终为 1)</span></span><br><span class="line">    <span class="type">BOOL</span> v19 = [<span class="keyword">self</span> hasLicense];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 用 v18 的值设置 _hasLicense ivar</span></span><br><span class="line">    <span class="comment">//   → v18 取决于磁盘上有没有有效的许可证文件</span></span><br><span class="line">    <span class="comment">//   → 没有文件的话 v18 = NO → _hasLicense = @(NO)</span></span><br><span class="line">    <span class="keyword">self</span>._hasLicense = @(v18);   <span class="comment">// ← 我们要让这里始终写入 @(YES)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 如果状态发生变化，发送通知刷新 UI</span></span><br><span class="line">    <span class="keyword">if</span> (v18 != v19) &#123;</span><br><span class="line">        [<span class="keyword">self</span> postNotification];  <span class="comment">// 根据 _hasLicense 的值决定发什么通知</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="原始汇编-定位到关键行"><a href="#原始汇编-定位到关键行" class="headerlink" title="原始汇编 (定位到关键行)"></a>原始汇编 (定位到关键行)</h4><p>在 <code>readLicenseInfo</code> 函数中，从 <code>0x10006B830</code> 开始是检查 email&#x2F;license 的逻辑：</p>
+<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">; --- 检查 email ---</span></span><br><span class="line"><span class="number">0x10006B830</span>: <span class="keyword">LDR</span> <span class="built_in">X0</span>, [<span class="built_in">X19</span>, <span class="number">#8</span>]            <span class="comment">; X0 = self-&gt;_licenseDict</span></span><br><span class="line"><span class="number">0x10006B834</span>: <span class="keyword">ADRL</span> <span class="built_in">X2</span>, <span class="string">&quot;email&quot;</span>             <span class="comment">; X2 = @&quot;email&quot;</span></span><br><span class="line"><span class="number">0x10006B83C</span>: <span class="keyword">BL</span> objectForKey:             <span class="comment">; X0 = [dict objectForKey:@&quot;email&quot;]</span></span><br><span class="line"><span class="number">0x10006B848</span>: <span class="keyword">MOV</span> <span class="built_in">X21</span>, <span class="built_in">X0</span>                  <span class="comment">; X21 = email 值</span></span><br><span class="line"><span class="number">0x10006B84C</span>: <span class="keyword">CBZ</span> <span class="built_in">X0</span>, no_email             <span class="comment">; email 为 nil → 跳转</span></span><br><span class="line"></span><br><span class="line"><span class="comment">; --- 检查 license ---</span></span><br><span class="line"><span class="number">0x10006B850</span>: <span class="keyword">LDR</span> <span class="built_in">X0</span>, [<span class="built_in">X19</span>, <span class="number">#8</span>]            <span class="comment">; X0 = self-&gt;_licenseDict</span></span><br><span class="line"><span class="number">0x10006B854</span>: <span class="keyword">ADRL</span> <span class="built_in">X2</span>, <span class="string">&quot;license&quot;</span>           <span class="comment">; X2 = @&quot;license&quot;</span></span><br><span class="line"><span class="number">0x10006B85C</span>: <span class="keyword">BL</span> objectForKey:             <span class="comment">; X0 = [dict objectForKey:@&quot;license&quot;]</span></span><br><span class="line"><span class="number">0x10006B868</span>: <span class="keyword">CMP</span> <span class="built_in">X0</span>, <span class="number">#0</span>                   <span class="comment">; license 是否为 nil?</span></span><br><span class="line"><span class="number">0x10006B86C</span>: CSET <span class="built_in">W20</span>, NE                 <span class="comment">; W20 = (license != nil) ? 1 : 0</span></span><br><span class="line"><span class="number">0x10006B874</span>: <span class="keyword">B</span> continue                   <span class="comment">; 跳转到设置 _hasLicense</span></span><br><span class="line"></span><br><span class="line"><span class="comment">; --- email 为空的分支 ---</span></span><br><span class="line"><span class="symbol">no_email:</span></span><br><span class="line"><span class="number">0x10006B878</span>: <span class="keyword">MOV</span> <span class="built_in">W20</span>, <span class="number">#0</span>                  <span class="comment">; W20 = 0 (没有 email → 没有许可证)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">; --- 设置 _hasLicense ---</span></span><br><span class="line"><span class="symbol">continue:</span></span><br><span class="line"><span class="number">0x10006B884</span>: <span class="keyword">MOV</span> <span class="built_in">X0</span>, <span class="built_in">X19</span>                  <span class="comment">; X0 = self</span></span><br><span class="line"><span class="number">0x10006B888</span>: <span class="keyword">BL</span> hasLicense                <span class="comment">; 调用 hasLicense 方法 (返回值存 X0)</span></span><br><span class="line"><span class="number">0x10006B88C</span>: <span class="keyword">MOV</span> <span class="built_in">X21</span>, <span class="built_in">X0</span>                  <span class="comment">; X21 = v19 (旧状态，用于后面比较)</span></span><br><span class="line"><span class="number">0x10006B890</span>: <span class="keyword">ADRP</span> <span class="built_in">X8</span>, classRef_NSNumber   <span class="comment">; 加载 NSNumber 类</span></span><br><span class="line"><span class="number">0x10006B894</span>: <span class="keyword">LDR</span> <span class="built_in">X0</span>, [<span class="built_in">X8</span>, ...]            <span class="comment">; X0 = NSNumber class</span></span><br><span class="line"></span><br><span class="line"><span class="comment">; ★★★ 就是这条指令 ★★★</span></span><br><span class="line"><span class="number">0x10006B898</span>: <span class="keyword">MOV</span> <span class="built_in">X2</span>, <span class="built_in">X20</span>                  <span class="comment">; X2 = W20 (0 或 1)，作为 numberWithBool: 的参数</span></span><br><span class="line"><span class="number">0x10006B89C</span>: <span class="keyword">BL</span> numberWithBool:           <span class="comment">; [NSNumber numberWithBool: X2]</span></span><br><span class="line"><span class="comment">; 后续把返回值存入 self-&gt;_hasLicense (偏移 0x18)</span></span><br><span class="line"><span class="number">0x10006B8A8</span>: <span class="keyword">LDR</span> <span class="built_in">X8</span>, [<span class="built_in">X19</span>, <span class="number">#0x18</span>]         <span class="comment">; 读旧值</span></span><br><span class="line"><span class="number">0x10006B8AC</span>: <span class="keyword">STR</span> <span class="built_in">X0</span>, [<span class="built_in">X19</span>, <span class="number">#0x18</span>]         <span class="comment">; _hasLicense = @(X2)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>ARM64 小课堂</strong>:</p>
+<ul>
+<li><code>CSET W20, NE</code>：Conditional SET。如果前一条 CMP 的结果是”不等于”（即 license !&#x3D; nil），则 W20&#x3D;1，否则 W20&#x3D;0。</li>
+<li><code>MOV X2, X20</code>：在 ObjC 的 <code>objc_msgSend</code> 调用约定中，X0&#x3D;self, X1&#x3D;selector, <strong>X2&#x3D;第一个参数</strong>。所以这条指令把 W20 的值传给 <code>numberWithBool:</code> 的参数。</li>
+</ul>
+</blockquote>
+<h4 id="Patch-内容"><a href="#Patch-内容" class="headerlink" title="Patch 内容"></a>Patch 内容</h4><figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">; 原始</span></span><br><span class="line"><span class="number">0x10006B898</span>: <span class="keyword">MOV</span> <span class="built_in">X2</span>, <span class="built_in">X20</span>    <span class="comment">; X2 = W20 (email和license是否都存在)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">; 修改为</span></span><br><span class="line"><span class="number">0x10006B898</span>: <span class="keyword">MOV</span> <span class="built_in">X2</span>, <span class="number">#1</span>     <span class="comment">; X2 = 1 (强制为 true，无论有没有许可证文件)</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="具体字节修改-1"><a href="#具体字节修改-1" class="headerlink" title="具体字节修改"></a>具体字节修改</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">文件偏移: 0x10006B898 (需根据 IDA 基址换算)</span><br><span class="line"></span><br><span class="line">原始字节: E2 03 14 AA    (MOV X2, X20)</span><br><span class="line">修改字节: 22 00 80 D2    (MOV X2, #1)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Patch-后伪代码-1"><a href="#Patch-后伪代码-1" class="headerlink" title="Patch 后伪代码"></a>Patch 后伪代码</h4><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="type">void</span>)readLicenseInfo &#123;</span><br><span class="line">    <span class="built_in">NSString</span> *path = [<span class="keyword">self</span> recordFilePathNew];</span><br><span class="line">    <span class="keyword">self</span>._licenseDict = [<span class="keyword">self</span> _readLicenseInfo:path];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 检查 email/license 是否存在 (这部分代码还在，但结果被忽略了)</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="type">BOOL</span> v19 = [<span class="keyword">self</span> hasLicense];  <span class="comment">// = 1 (Patch 1 的效果)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// ★ patch 后：不管磁盘上有没有许可证文件，都设为 YES</span></span><br><span class="line">    <span class="keyword">self</span>._hasLicense = @(<span class="literal">YES</span>);     <span class="comment">// 原来是 @(v18)，现在强制为 @(YES)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// v18 被强制为 1，v19 也是 1 (Patch 1)，所以 1 != 1 为 false</span></span><br><span class="line">    <span class="comment">// → postNotification 不会被调用</span></span><br><span class="line">    <span class="comment">// → 但即使被调用，_hasLicense 也是 YES，会发 &quot;fillLicense&quot; 通知</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">1</span> != <span class="number">1</span>) &#123;  <span class="comment">// 永远不成立</span></span><br><span class="line">        [<span class="keyword">self</span> postNotification];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="两处-Patch-的配合关系"><a href="#两处-Patch-的配合关系" class="headerlink" title="两处 Patch 的配合关系"></a>两处 Patch 的配合关系</h3><p>程序中有 <strong>两套机制</strong> 检查许可证状态，分别依赖方法和 ivar，所以两处都要改：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">                 ┌─────────────────────────────────┐</span><br><span class="line">                 │       LicenseManager 对象        │</span><br><span class="line">                 │                                 │</span><br><span class="line">                 │  _hasLicense (ivar) ←── Patch 2 │</span><br><span class="line">                 │       │                         │</span><br><span class="line">                 │  hasLicense() 方法  ←── Patch 1  │</span><br><span class="line">                 └───┬───────────┬─────────────────┘</span><br><span class="line">                     │           │</span><br><span class="line">         ┌───────────┘           └───────────┐</span><br><span class="line">         ▼                                   ▼</span><br><span class="line">┌─── 调用方法的地方 ───┐            ┌─── 读ivar的地方 ───┐</span><br><span class="line">│                      │            │                     │</span><br><span class="line">│ cannotContonueUse:   │            │ postNotification    │</span><br><span class="line">│  → 是否强制退出       │            │  → 发什么通知        │</span><br><span class="line">│                      │            │  → JS设什么值        │</span><br><span class="line">│ windowDidLoad        │            │                     │</span><br><span class="line">│  → 是否注入角标JS     │            │ getLicensePanelUrl  │</span><br><span class="line">│                      │            │  → 面板显示什么状态   │</span><br><span class="line">└──────────────────────┘            └─────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>检查点</th>
+<th>依赖什么</th>
+<th>Patch 前</th>
+<th>Patch 后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cannotContonueUse:</code> 是否强制退出</td>
+<td>调用 <code>hasLicense</code> 方法</td>
+<td>超20天无许可证→退出</td>
+<td>永远不退出 (Patch 1)</td>
+</tr>
+<tr>
+<td><code>windowDidLoad</code> 是否注入角标</td>
+<td>调用 <code>hasLicense</code> 方法</td>
+<td>无许可证→注入JS角标</td>
+<td>永远不注入 (Patch 1)</td>
+</tr>
+<tr>
+<td><code>postNotification</code> 发什么通知</td>
+<td>直接读 <code>_hasLicense</code> ivar</td>
+<td>无许可证→发unfillLicense</td>
+<td>发fillLicense (Patch 2)</td>
+</tr>
+<tr>
+<td><code>getLicensePanelUrlParams:</code> 面板状态</td>
+<td>直接读 <code>_hasLicense</code> ivar</td>
+<td>状态&#x3D;未激活</td>
+<td>状态&#x3D;已激活 (Patch 2)</td>
+</tr>
+<tr>
+<td>前端JS <code>File.option.hasLicense</code></td>
+<td>由通知触发设置</td>
+<td>false→显示角标</td>
+<td>true→不显示 (Patch 2)</td>
+</tr>
+</tbody></table>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>两处共修改 <strong>12 字节</strong> (8+4)，完整绕过所有激活检查：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Patch 1 @ 0x100069FB8:  00 0C 40 F9 40 00 00 B4  →  20 00 80 52 C0 03 5F D6</span><br><span class="line">Patch 2 @ 0x10006B898:  E2 03 14 AA              →  22 00 80 D2</span><br></pre></td></tr></table></figure>
+
+<h3 id="重新签名"><a href="#重新签名" class="headerlink" title="重新签名"></a>重新签名</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">Last login: Sat Jun 13 16:08:02 on ttys003</span><br><span class="line">╭─ /Applications/Typora.app/Contents/MacOS ──────────────────────────────────────────────────────────── ✔  16:23:29 </span><br><span class="line">╰─ ./Typora ; echo &quot;退出码: $?&quot;     </span><br><span class="line">[1]    12144 killed     ./Typora</span><br><span class="line">退出码: 137</span><br><span class="line"></span><br><span class="line">╭─ /Applications/Typora.app/Contents/MacOS ──────────────────────────────────────────────────────────── ✔  16:23:31 </span><br><span class="line">╰─ codesign --remove-signature ./Typora</span><br><span class="line"></span><br><span class="line">╭─ /Applications/Typora.app/Contents/MacOS ──────────────────────────────────────────────────────────── ✔  16:23:42 </span><br><span class="line">╰─ codesign -s - --force ./Typora      </span><br><span class="line"></span><br><span class="line">╭─ /Applications/Typora.app/Contents/MacOS ──────────────────────────────────────────────────────────── ✔  16:23:47 </span><br><span class="line">╰─ codesign -dv --verbose=4 ./Typora   </span><br><span class="line">Executable=/Applications/Typora.app/Contents/MacOS/Typora</span><br><span class="line">Identifier=abnerworks.Typora</span><br><span class="line">Format=app bundle with Mach-O universal (x86_64 arm64)</span><br><span class="line">CodeDirectory v=20400 size=3306 flags=0x2(adhoc) hashes=97+3 location=embedded</span><br><span class="line">VersionPlatform=1</span><br><span class="line">VersionMin=720896</span><br><span class="line">VersionSDK=1704448</span><br><span class="line">Hash type=sha256 size=32</span><br><span class="line">CandidateCDHash sha256=555f56c824c22affc705d31a399394e2525659c1</span><br><span class="line">CandidateCDHashFull sha256=555f56c824c22affc705d31a399394e2525659c1aa17d7ce01dc1ba1e84a38de</span><br><span class="line">Hash choices=sha256</span><br><span class="line">CMSDigest=555f56c824c22affc705d31a399394e2525659c1aa17d7ce01dc1ba1e84a38de</span><br><span class="line">CMSDigestType=2</span><br><span class="line">Executable Segment base=0</span><br><span class="line">Executable Segment limit=786432</span><br><span class="line">Executable Segment flags=0x1</span><br><span class="line">Page size=16384</span><br><span class="line">CDHash=555f56c824c22affc705d31a399394e2525659c1</span><br><span class="line">Signature=adhoc</span><br><span class="line">Info.plist entries=35</span><br><span class="line">TeamIdentifier=not set</span><br><span class="line">Sealed Resources version=2 rules=13 files=507</span><br><span class="line">Internal requirements count=0 size=12</span><br><span class="line"></span><br><span class="line">╭─ /Applications/Typora.app/Contents/MacOS ──────────────────────────────────────────────────────────── ✔  16:23:53 </span><br><span class="line">╰─ ./Typora ; echo &quot;退出码: $?&quot;        </span><br><span class="line">2026-06-13 16:23:55.749 Typora[12268:8699581] Could not find image named &#x27;NSImageNameTouchBarTextListTemplate&#x27;.</span><br><span class="line">2026-06-13 16:23:55.851 Typora[12268:8699581] -[WKWebView _setDrawsTransparentBackground:] is deprecated and should not be used.</span><br><span class="line">2026-06-13 16:24:50.766 Typora[12268:8699581] TSM AdjustCapsLockLEDForKeyTransitionHandling - _ISSetPhysicalKeyboardCapsLockLED Inhibit</span><br><span class="line">2026-06-13 16:24:50.768 Typora[12268:8699581] error messaging the mach port for IMKCFRunLoopWakeUpReliable</span><br><span class="line">退出码: 0</span><br><span class="line"></span><br><span class="line">╭─ /Applications/Typora.app/Contents/MacOS ──────────────────────────────────────────────────── ✔  1m 8s  16:25:03 </span><br><span class="line">╰─ </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>退出码137一般就是签名问题。</p>
+<p>退出码 137 &#x3D; 128 + 9 &#x3D; SIGKILL，在 macOS 上这基本就是内核因为签名校验失败直接把进程干掉了（AMFI 把它 kill 了）。修复就是重新签名：</p>
+<p>直接 ad-hoc 重签</p>
+<h4 id="1-移除失效的旧签名"><a href="#1-移除失效的旧签名" class="headerlink" title="1. 移除失效的旧签名"></a>1. 移除失效的旧签名</h4><p>codesign –remove-signature 你的程序</p>
+<h4 id="2-用-ad-hoc-签名（-s-表示-ad-hoc，不需要证书）"><a href="#2-用-ad-hoc-签名（-s-表示-ad-hoc，不需要证书）" class="headerlink" title="2. 用 ad-hoc 签名（-s - 表示 ad-hoc，不需要证书）"></a>2. 用 ad-hoc 签名（-s - 表示 ad-hoc，不需要证书）</h4><p>codesign -s - –force 你的程序</p>
+<h4 id="3-验证"><a href="#3-验证" class="headerlink" title="3. 验证"></a>3. 验证</h4><p>codesign -dv –verbose&#x3D;4 你的程序<br>.&#x2F;你的程序 ; echo “退出码: $?”</p>
+<p>如果第 2 步报错，或者程序带 Hardened Runtime，加上 entitlements&#x2F;runtime 选项：</p>
+<p>codesign -s - –force –options runtime 你的程序</p>
+<p>如果是 .app 应用包</p>
+<p>要对包里真正的可执行文件签，而且最好整包 –deep 重签：</p>
+<p>codesign -s - –force –deep 你的程序.app</p>
+<p>还可能挡路的两个东西</p>
+<p>去掉下载隔离属性（否则 Gatekeeper 也会拦）</p>
+<p>xattr -cr 你的程序</p>
+<p>arm64 (Apple Silicon) 上修改过的二进制，确认架构无误</p>
+<p>file 你的程序</p>
+<p>按顺序跑完后再 .&#x2F;你的程序 ; echo “退出码: $?”。</p>
+<ul>
+<li>退出码变 0 或正常运行 → 修好了。</li>
+<li>仍是 137 → 签名没生效，把 codesign -dv –verbose&#x3D;4 的输出贴给我看。</li>
+<li>变成 139 (SIGSEGV) → 签名过了，但你 patch 的字节改坏了逻辑，那就得回头核对 patch 位置&#x2F;字节，我可以帮你在 IDA 里对一下。</li>
+</ul>
+<p>另外提醒一句:重签名前如果用了 strip 或别的工具，确保 patch 已经写进文件了。先 codesign –remove-signature 再签是关键,直接覆盖签有时不生效。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" rel="tag"># 逆向工程</a>
+              <a href="/tags/Typora/" rel="tag"># Typora</a>
+              <a href="/tags/macOS/" rel="tag"># macOS</a>
+              <a href="/tags/ARM64/" rel="tag"># ARM64</a>
+              <a href="/tags/IDA-Pro/" rel="tag"># IDA Pro</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/10/adrift/" rel="prev" title="HGAME2026 adrift">
+                  <i class="fa fa-angle-left"></i> HGAME2026 adrift
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/06/16/typora-license-bypass-windows/" rel="next" title="Typora 激活逻辑逆向 (Windows)">
+                  Typora 激活逻辑逆向 (Windows) <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">CuO</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

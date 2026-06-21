@@ -26,23 +26,23 @@
 <meta property="og:site_name" content="CuO">
 <meta property="og:description" content="从拆机焊接 UART、U-Boot 中断启动拿本地 root shell，到提取固件、逆向 AES 加密、修改 SquashFS 植入 bind shell，最终实现远程持久化 root shell。全程记录踩坑与解决方案。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://cuo-kokomi.github.io/3db3b0bb37fb2b0eea3eb567369af049.jpg">
-<meta property="og:image" content="https://cuo-kokomi.github.io/407e6ff8e10863e3ea71985768d7140a.jpg">
-<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260617230405791.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/858ed7e6094836e8a6ed6761e1737b81.jpg">
-<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260617221647651.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260617230608539.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260617231307706.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/f83db479954a67e0b486c987a72f0042.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260620232634043.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/image-20260620233432146.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/6843611644741083f03b35add7e751d1.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/b05413ef7bf5b88d8fd2a5051b8e9bd0.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/6daad0333294ff1242a6416f4bab8e9c.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/86faf84cbfba83c114f0c0b9f985044d.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/202ba5cbfa2eddc03660f60a948bd418.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/0824c37dd51fe231146138adcb517946.png">
-<meta property="og:image" content="https://cuo-kokomi.github.io/af0e8fde87947df9ed60949bc5958a63.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/3db3b0bb37fb2b0eea3eb567369af049.jpg">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/407e6ff8e10863e3ea71985768d7140a.jpg">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/image-20260617230405791.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/858ed7e6094836e8a6ed6761e1737b81.jpg">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/image-20260617221647651.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/image-20260617230608539.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/image-20260617231307706.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/f83db479954a67e0b486c987a72f0042.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/image-20260620232634043.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/image-20260620233432146.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/6843611644741083f03b35add7e751d1.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/b05413ef7bf5b88d8fd2a5051b8e9bd0.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/6daad0333294ff1242a6416f4bab8e9c.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/86faf84cbfba83c114f0c0b9f985044d.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/202ba5cbfa2eddc03660f60a948bd418.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/0824c37dd51fe231146138adcb517946.png">
+<meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/af0e8fde87947df9ed60949bc5958a63.png">
 <meta property="article:published_time" content="2026-06-20T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-06-21T14:27:29.390Z">
 <meta property="article:author" content="CuO">
@@ -52,7 +52,7 @@
 <meta property="article:tag" content="固件安全">
 <meta property="article:tag" content="逆向工程">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://cuo-kokomi.github.io/3db3b0bb37fb2b0eea3eb567369af049.jpg">
+<meta name="twitter:image" content="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/3db3b0bb37fb2b0eea3eb567369af049.jpg">
 
 
 <link rel="canonical" href="https://cuo-kokomi.github.io/2026/06/21/tapo-c200-root/">
@@ -274,23 +274,23 @@
     <div class="post-body" itemprop="articleBody"><p>从拆机焊接 UART、U-Boot 中断启动拿本地 root shell，到提取固件、逆向 AES 加密、修改 SquashFS 植入 bind shell，最终实现远程持久化 root shell。全程记录踩坑与解决方案。</p>
 <span id="more"></span>
 
-<h2 id="一、拆机-焊接-UART"><a href="#一、拆机-焊接-UART" class="headerlink" title="一、拆机 &amp; 焊接 UART"></a>一、拆机 &amp; 焊接 UART</h2><p>拿到摄像头：<br><img src="/3db3b0bb37fb2b0eea3eb567369af049.jpg" alt="3db3b0bb37fb2b0eea3eb567369af049"></p>
+<h2 id="一、拆机-焊接-UART"><a href="#一、拆机-焊接-UART" class="headerlink" title="一、拆机 &amp; 焊接 UART"></a>一、拆机 &amp; 焊接 UART</h2><p>拿到摄像头：<br><img src="/2026/06/21/tapo-c200-root/3db3b0bb37fb2b0eea3eb567369af049.jpg" alt="3db3b0bb37fb2b0eea3eb567369af049"></p>
 <p>去掉外壳：</p>
-<p><img src="/407e6ff8e10863e3ea71985768d7140a.jpg" alt="407e6ff8e10863e3ea71985768d7140a"></p>
+<p><img src="/2026/06/21/tapo-c200-root/407e6ff8e10863e3ea71985768d7140a.jpg" alt="407e6ff8e10863e3ea71985768d7140a"></p>
 <p>看到UART：</p>
-<p><img src="/image-20260617230405791.png" alt="image-20260617230405791"></p>
+<p><img src="/2026/06/21/tapo-c200-root/image-20260617230405791.png" alt="image-20260617230405791"></p>
 <p>从 RX 和 TX 到 CPU 的线路上有一个 0 欧姆电阻，但他们工厂不填充（所以没有连接）。因此先把线路焊接上：</p>
-<p><img src="/858ed7e6094836e8a6ed6761e1737b81.jpg" alt="858ed7e6094836e8a6ed6761e1737b81"></p>
+<p><img src="/2026/06/21/tapo-c200-root/858ed7e6094836e8a6ed6761e1737b81.jpg" alt="858ed7e6094836e8a6ed6761e1737b81"></p>
 <p>ok那里线路焊上了。</p>
 <hr>
 <h2 id="二、拿本地-root-shell"><a href="#二、拿本地-root-shell" class="headerlink" title="二、拿本地 root shell"></a>二、拿本地 root shell</h2><p>启动流程：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">U-Boot → kernel → /etc/preinit（挂载文件系统）→ /sbin/init → /etc/init.d/rcS → /bin/main（管理 WiFi、摄像头）</span><br></pre></td></tr></table></figure>
 
 <p>用cu连接串口：</p>
-<p><img src="/image-20260617221647651.png" alt="image-20260617221647651"></p>
+<p><img src="/2026/06/21/tapo-c200-root/image-20260617221647651.png" alt="image-20260617221647651"></p>
 <p>这里拼手速，复制好slp，显示<code>autoboot in 1 second</code>的时候立马粘贴，成功进U-Boot shell：</p>
-<p><img src="/image-20260617230608539.png" alt="image-20260617230608539"></p>
-<p><img src="/image-20260617231307706.png" alt="image-20260617231307706"></p>
+<p><img src="/2026/06/21/tapo-c200-root/image-20260617230608539.png" alt="image-20260617230608539"></p>
+<p><img src="/2026/06/21/tapo-c200-root/image-20260617231307706.png" alt="image-20260617231307706"></p>
 <p>然后执行了下面的命令（上图）：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sf probe</span><br><span class="line">sf <span class="built_in">read</span> 0x80600000 0x70200 0x200000</span><br><span class="line">setenv bootargs <span class="string">&#x27;earlyprintk console=ttyS1,115200n8 mem=46M@0x0 rmem=18M@0x2e00000 rootwait nprofile_irq_duration=on rootfstype=squashfs ro mtdparts=spi_nor.0 root=/dev/mtdblock6 rw spdev=/dev/mtdblock7 noinitrd init=/bin/ash&#x27;</span></span><br><span class="line">bootm 0x80600000</span><br></pre></td></tr></table></figure>
 
@@ -302,17 +302,17 @@
 <li>bootm — 启动内核</li>
 </ul>
 <p>内核启动后直接得到 # 提示符，就是 root shell，不需要密码。</p>
-<p><img src="/f83db479954a67e0b486c987a72f0042.png" alt="f83db479954a67e0b486c987a72f0042"></p>
+<p><img src="/2026/06/21/tapo-c200-root/f83db479954a67e0b486c987a72f0042.png" alt="f83db479954a67e0b486c987a72f0042"></p>
 <p>成功拿到本地 root shell！</p>
 <hr>
 <h2 id="三、为了本地永久-root-shell-设置-saveenv-导致的严重后果"><a href="#三、为了本地永久-root-shell-设置-saveenv-导致的严重后果" class="headerlink" title="三、为了本地永久 root shell 设置 saveenv 导致的严重后果"></a>三、为了本地永久 root shell 设置 saveenv 导致的严重后果</h2><p>在第二步中，我们拿到了一个本地的root shell，但是我觉得每次重启都得跑一遍那些命令很麻烦，于是把启动参数环境变量用saveenv永久写入：</p>
-<p><img src="/image-20260620232634043.png" alt="image-20260620232634043"></p>
+<p><img src="/2026/06/21/tapo-c200-root/image-20260620232634043.png" alt="image-20260620232634043"></p>
 <p>没错，这样确实使得每次启动都能进本地root shell，方便调试，但是saveenv有个很严重的问题，会覆盖出厂的默认环境变量！！</p>
 <p>这一步让我们卡了好久。</p>
 <p>ai分析：</p>
 <p><strong>原因</strong>：<code>saveenv</code> 覆盖了出厂 U-Boot 环境分区中的关键数据（可能包括 WiFi 校准信息或正确的默认 bootargs）。  </p>
 <p>正常情况下，开机之后，在wifi列表里就可以看到tapo-cam-6554</p>
-<p><img src="/image-20260620233432146.png" alt="image-20260620233432146"></p>
+<p><img src="/2026/06/21/tapo-c200-root/image-20260620233432146.png" alt="image-20260620233432146"></p>
 <p>但是执行<code>saveenv</code>这个之后，再启动就再也看不到了，wifi列表里没有。。</p>
 <hr>
 <h2 id="四、saveenv-的修复之临时方案"><a href="#四、saveenv-的修复之临时方案" class="headerlink" title="四、saveenv 的修复之临时方案"></a>四、saveenv 的修复之临时方案</h2><p>遇到第三步说的困难之后，尝试许久，只能把报错日志发给ai，ai表示启动参数应该设置为：</p>
@@ -324,14 +324,14 @@
 <p>怎么做会在 “<strong>六、[7&#x2F;8] 修改 preinit — spdev fallback</strong>“ 处理。</p>
 <hr>
 <h2 id="五、提取固件"><a href="#五、提取固件" class="headerlink" title="五、提取固件"></a>五、提取固件</h2><p>先把固件 dump 出来，准备好 SD 卡，插上，进 U-Boot：</p>
-<p><img src="/6843611644741083f03b35add7e751d1.png" alt="6843611644741083f03b35add7e751d1"></p>
+<p><img src="/2026/06/21/tapo-c200-root/6843611644741083f03b35add7e751d1.png" alt="6843611644741083f03b35add7e751d1"></p>
 <p>执行了：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sf probe</span><br><span class="line">sf <span class="built_in">read</span> 0x80600000 0 0x800000</span><br><span class="line">mmc write 0x80600000 0 0x4000</span><br></pre></td></tr></table></figure>
 
 <p>这里有个小坑，<code>mmc write</code>最后得写<code>0x4000</code>，因为直接写16384也会被当成16进制（就像图片中一样<code>count 91012</code>）</p>
 <p>然后sd卡接上电脑，在mac上把它读取出来：</p>
-<p><img src="/b05413ef7bf5b88d8fd2a5051b8e9bd0.png" alt="b05413ef7bf5b88d8fd2a5051b8e9bd0"></p>
-<p><img src="/6daad0333294ff1242a6416f4bab8e9c.png" alt="6daad0333294ff1242a6416f4bab8e9c"></p>
+<p><img src="/2026/06/21/tapo-c200-root/b05413ef7bf5b88d8fd2a5051b8e9bd0.png" alt="b05413ef7bf5b88d8fd2a5051b8e9bd0"></p>
+<p><img src="/2026/06/21/tapo-c200-root/6daad0333294ff1242a6416f4bab8e9c.png" alt="6daad0333294ff1242a6416f4bab8e9c"></p>
 <p>得到<code>dump.bin</code>。</p>
 <h3 id="踩过的坑："><a href="#踩过的坑：" class="headerlink" title="踩过的坑："></a>踩过的坑：</h3><p>一开始在Linux shell 中 dump，但是这个 shell 是个极简环境，没有正常的文件系统挂载，很多东西不能用。</p>
 <p>（尝试了挂载等等去弄，但是最后卡在了WIFI AP模块加载不了，失败了所以没有截图）</p>
@@ -508,11 +508,11 @@
 
 <p>从 8MB repacked 镜像中只切出 rootfs 部分（2.2MB），传输更快，U-Boot 刷入时直接加载到 0x80600000 写入 0x1B0000 即可。</p>
 <hr>
-<h3 id="写入-SD-卡"><a href="#写入-SD-卡" class="headerlink" title="写入 SD 卡"></a>写入 SD 卡</h3><p><img src="/86faf84cbfba83c114f0c0b9f985044d.png" alt="86faf84cbfba83c114f0c0b9f985044d"></p>
+<h3 id="写入-SD-卡"><a href="#写入-SD-卡" class="headerlink" title="写入 SD 卡"></a>写入 SD 卡</h3><p><img src="/2026/06/21/tapo-c200-root/86faf84cbfba83c114f0c0b9f985044d.png" alt="86faf84cbfba83c114f0c0b9f985044d"></p>
 <p>拿到<code>dump.bin.rootfs_only.bin</code>。</p>
-<p><img src="/202ba5cbfa2eddc03660f60a948bd418.png" alt="202ba5cbfa2eddc03660f60a948bd418"></p>
+<p><img src="/2026/06/21/tapo-c200-root/202ba5cbfa2eddc03660f60a948bd418.png" alt="202ba5cbfa2eddc03660f60a948bd418"></p>
 <hr>
-<h2 id="七、给摄像头刷入有后门的固件"><a href="#七、给摄像头刷入有后门的固件" class="headerlink" title="七、给摄像头刷入有后门的固件"></a>七、给摄像头刷入有后门的固件</h2><p><img src="/0824c37dd51fe231146138adcb517946.png" alt="0824c37dd51fe231146138adcb517946"></p>
+<h2 id="七、给摄像头刷入有后门的固件"><a href="#七、给摄像头刷入有后门的固件" class="headerlink" title="七、给摄像头刷入有后门的固件"></a>七、给摄像头刷入有后门的固件</h2><p><img src="/2026/06/21/tapo-c200-root/0824c37dd51fe231146138adcb517946.png" alt="0824c37dd51fe231146138adcb517946"></p>
 <p>执行了：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mmc <span class="built_in">read</span> 0x80600000 0 0x1100   </span><br><span class="line">sf probe                 </span><br><span class="line">sf erase 0x1B0000 0x220000       </span><br><span class="line">sf write 0x80600000 0x1B0000 0x220000       </span><br><span class="line">reset  </span><br></pre></td></tr></table></figure>
 
@@ -526,7 +526,7 @@
 </ul>
 <p>wifi里连上<code>tapo-cam-6554</code></p>
 <p>nc连接：</p>
-<p><img src="/af0e8fde87947df9ed60949bc5958a63.png" alt="af0e8fde87947df9ed60949bc5958a63"></p>
+<p><img src="/2026/06/21/tapo-c200-root/af0e8fde87947df9ed60949bc5958a63.png" alt="af0e8fde87947df9ed60949bc5958a63"></p>
 <p>成功拿到远程 root shell！！</p>
 <hr>
 <h2 id="八、总结攻击成果"><a href="#八、总结攻击成果" class="headerlink" title="八、总结攻击成果"></a>八、总结攻击成果</h2><p>从拆机到实现远程持久化 root shell。最终效果：摄像头通电即自动启动 WiFi AP 和 bind shell，<br>攻击者无需物理接触，连接 WiFi 后 <code>nc 192.168.191.1 4444</code> 即获得 root 权限。</p>

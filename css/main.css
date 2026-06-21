@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #c312ff;
+  background: #ff13e0;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2833,7 +2833,7 @@ body {
 .post-body figure.highlight .gutter pre {
   background: transparent !important;
   color: #b5b1a8 !important;
-  padding: 0 10px !important;
+  padding: 0 6px 0 4px !important;
   text-align: right;
   margin: 0;
 }

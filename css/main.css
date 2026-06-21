@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #d4f46c;
+  background: #c312ff;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2703,6 +2703,12 @@ body {
 .posts-expand .post-eof {
   display: none;
 }
+.posts-expand .post-block:not(:first-of-type) {
+  margin-top: 18px !important;
+}
+.posts-expand .post-header {
+  margin-bottom: 14px !important;
+}
 .post-title,
 .posts-expand .post-title {
   font-family: 'Inter', sans-serif;
@@ -2821,10 +2827,15 @@ body {
   color: #2d2a26;
 }
 .post-body figure.highlight .gutter {
+  width: 1px !important;
   border-right: 1px solid #e0dcd2;
 }
 .post-body figure.highlight .gutter pre {
-  color: #b5b1a8;
+  background: transparent !important;
+  color: #b5b1a8 !important;
+  padding: 0 10px !important;
+  text-align: right;
+  margin: 0;
 }
 .post-body figure.highlight figcaption {
   color: #8a8780;

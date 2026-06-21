@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #de1b28;
+  background: #0d6590;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2700,11 +2700,37 @@ body {
   padding: 24px 30px;
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(31,30,29,0.04);
-  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  transition: box-shadow 0.35s cubic-bezier(0.56, 1.35, 0.52, 1), transform 0.35s cubic-bezier(0.56, 1.35, 0.52, 1);
 }
 .posts-expand .post-block:hover {
-  box-shadow: 0 4px 16px rgba(31,30,29,0.07);
-  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(217,119,87,0.14), 0 2px 8px rgba(31,30,29,0.05);
+  transform: translateY(-4px);
+}
+.posts-expand .post-block {
+  animation: card-jelly-in 0.62s cubic-bezier(0.56, 1.35, 0.52, 1) both;
+}
+.posts-expand .post-block:nth-of-type(1) {
+  animation-delay: 0.04s;
+}
+.posts-expand .post-block:nth-of-type(2) {
+  animation-delay: 0.12s;
+}
+.posts-expand .post-block:nth-of-type(3) {
+  animation-delay: 0.2s;
+}
+.posts-expand .post-block:nth-of-type(4) {
+  animation-delay: 0.28s;
+}
+.posts-expand .post-block:nth-of-type(5) {
+  animation-delay: 0.36s;
+}
+.posts-expand .post-block:nth-of-type(n+6) {
+  animation-delay: 0.44s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .posts-expand .post-block {
+    animation: none;
+  }
 }
 .posts-expand .post-eof {
   display: none;
@@ -2753,13 +2779,14 @@ body {
   font-size: 13px;
   letter-spacing: 0.2px;
   box-shadow: none;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.25s ease, box-shadow 0.3s cubic-bezier(0.56, 1.35, 0.52, 1), transform 0.3s cubic-bezier(0.56, 1.35, 0.52, 1);
 }
 .post-button .btn:hover,
 .btn:hover {
   background: #c15f3c;
   color: #fff;
-  box-shadow: 0 4px 14px rgba(217,119,87,0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(217,119,87,0.35);
 }
 .post-body {
   color: #1f1e1d;
@@ -2897,10 +2924,15 @@ figure.highlight:hover .copy-btn {
 }
 .post-body img {
   border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(31,30,29,0.1);
+  box-shadow: 0 6px 20px rgba(82,69,57,0.12);
   margin: 1em auto;
   display: block;
   max-width: 100%;
+  transition: box-shadow 0.35s cubic-bezier(0.56, 1.35, 0.52, 1), transform 0.35s cubic-bezier(0.56, 1.35, 0.52, 1);
+}
+.post-body img:hover {
+  box-shadow: 0 10px 28px rgba(217,119,87,0.16), 0 2px 8px rgba(31,30,29,0.06);
+  transform: translateY(-3px);
 }
 .post-tags a {
   background: #fceee6;
@@ -2911,11 +2943,12 @@ figure.highlight:hover .copy-btn {
   font-size: 12px;
   margin: 0 6px 6px 0;
   display: inline-block;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.25s cubic-bezier(0.56, 1.35, 0.52, 1), color 0.25s ease, transform 0.25s cubic-bezier(0.56, 1.35, 0.52, 1);
 }
 .post-tags a:hover {
   background: #d97757;
   color: #fff;
+  transform: translateY(-2px);
   border-color: #d97757;
 }
 .pagination {
@@ -3101,4 +3134,21 @@ figure.highlight:hover .copy-btn {
 .post-toc .nav-child .nav-link {
   font-size: 14.5px;
   color: #8e8a81;
+}
+@keyframes card-jelly-in {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.97);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-5px) scale(1.01);
+  }
+  80% {
+    transform: translateY(2px) scale(0.997);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

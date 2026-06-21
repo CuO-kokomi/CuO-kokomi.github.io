@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #693eb4;
+  background: #d4ff4a;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2980,10 +2980,10 @@ figure.highlight:hover .copy-btn {
 .post-list-widget-title {
   font-weight: 600;
   font-size: 14px;
-  color: #1f1e1d;
+  color: #e4e0d8;
   padding-bottom: 8px;
   margin-bottom: 10px;
-  border-bottom: 1px solid #e8e5de;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
 }
 .post-list-widget-title .fa {
   color: #d97757;
@@ -3000,7 +3000,7 @@ figure.highlight:hover .copy-btn {
   line-height: 1.5;
 }
 .post-list-widget-item a {
-  color: #6e6b66;
+  color: #b8b3a9;
   font-size: 13px;
   text-decoration: none;
   border-bottom: none;

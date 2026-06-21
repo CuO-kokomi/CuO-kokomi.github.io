@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #cf2641;
+  background: #5c4016;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -3018,6 +3018,12 @@ figure.highlight:hover .copy-btn {
   color: #d97757;
   background: rgba(217,119,87,0.12);
   border-left-color: #d97757;
+}
+.post-list-widget-item.active a {
+  color: #d97757;
+  background: rgba(217,119,87,0.14);
+  border-left-color: #d97757;
+  font-weight: 600;
 }
 .sidebar-nav {
   border-bottom: 1px solid rgba(255,255,255,0.1);

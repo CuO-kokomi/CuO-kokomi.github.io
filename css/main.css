@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #5c4016;
+  background: #de1b28;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2631,14 +2631,20 @@ header.header {
 .sub-menu .menu-item {
   display: inline-block;
 }
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@font-face {
+  font-family: 'Maple Mono';
+  src: url("/font/MapleMono-NF-CN-Regular.woff2") format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 :root {
   --content-bg: #fff;
 }
 body {
   background: #faf9f5;
   color: #1f1e1d;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-family: 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', '微软雅黑', 'Noto Sans SC', sans-serif;
   font-size: 15px;
   line-height: 1.8;
   -webkit-font-smoothing: antialiased;
@@ -2656,7 +2662,7 @@ body {
   background: transparent;
 }
 .site-title {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-family: 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', '微软雅黑', 'Noto Sans SC', sans-serif;
   font-weight: 700;
   font-size: 26px;
   letter-spacing: -0.5px;
@@ -2711,7 +2717,7 @@ body {
 }
 .post-title,
 .posts-expand .post-title {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-family: 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', '微软雅黑', 'Noto Sans SC', sans-serif;
   font-weight: 700;
   font-size: 26px;
   letter-spacing: -0.4px;
@@ -2765,7 +2771,7 @@ body {
 .post-body h3,
 .post-body h4,
 .post-body h5 {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-family: 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', '微软雅黑', 'Noto Sans SC', sans-serif;
   font-weight: 700;
   color: #1f1e1d;
   letter-spacing: -0.3px;
@@ -2797,7 +2803,7 @@ body {
   color: #c15f3c;
   padding: 2px 6px;
   border-radius: 5px;
-  font-family: 'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, 'Courier New', monospace;
+  font-family: 'Maple Mono', 'JetBrains Mono', 'SF Mono', Consolas, Menlo, monospace;
   font-size: 0.86em;
   border: none;
 }
@@ -2809,7 +2815,7 @@ body {
   border-radius: 10px !important;
   margin: 1.5em 0 !important;
   box-shadow: none;
-  font-family: 'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, 'Courier New', monospace;
+  font-family: 'Maple Mono', 'JetBrains Mono', 'SF Mono', Consolas, Menlo, monospace;
   font-size: 13.5px;
 }
 .post-body figure.highlight {

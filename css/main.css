@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #4fffb4;
+  background: #f6a2a3;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2796,6 +2796,7 @@ main.main > .main-inner {
 }
 .post-body {
   color: #1f1e1d;
+  font-family: 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', '微软雅黑', 'Noto Sans SC', sans-serif;
   font-size: 15.5px;
   line-height: 1.85;
 }

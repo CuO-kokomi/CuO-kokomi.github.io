@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"cuo-kokomi.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"default"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"cuo-kokomi.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"remove","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"default"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
 
     <meta name="description" content="用 IDA Pro 分析 Typora macOS 版（ARM64 Mach-O）的激活逻辑，定位核心类 LicenseManager，厘清「在线激活 + RSA 验签 + AES 本地存储」的完整流程，最终只改 12 字节 + ad-hoc 重签名，完整绕过所有许可证检查。">
 <meta property="og:type" content="article">
@@ -55,7 +55,7 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
-<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/next-boot.js" defer></script>
 
   
 
@@ -117,93 +117,6 @@
 
 
 </header>
-        
-  
-  <aside class="sidebar">
-
-    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
-      <ul class="sidebar-nav">
-        <li class="sidebar-nav-toc">
-          文章目录
-        </li>
-        <li class="sidebar-nav-overview">
-          站点概览
-        </li>
-      </ul>
-
-      <div class="sidebar-panel-container">
-        <!--noindex-->
-        <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="nav-text">基本信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B"><span class="nav-text">分析过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AE%9A%E4%BD%8D%E6%A0%B8%E5%BF%83%E7%B1%BB"><span class="nav-text">1. 定位核心类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%BF%80%E6%B4%BB%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88"><span class="nav-text">2. 激活流程概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%AE%B8%E5%8F%AF%E8%AF%81%E6%A0%BC%E5%BC%8F"><span class="nav-text">3. 许可证格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%9C%A8%E7%BA%BF%E6%BF%80%E6%B4%BB"><span class="nav-text">4. 在线激活</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81"><span class="nav-text">5. 签名验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8"><span class="nav-text">6. 本地存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E8%AF%95%E7%94%A8%E6%9C%9F%E4%B8%8E-UI-%E6%8E%A7%E5%88%B6"><span class="nav-text">7. 试用期与 UI 控制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%95%E8%BF%87%E6%96%B9%E6%A1%88"><span class="nav-text">绕过方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E8%B5%B0%E6%AD%A3%E5%B8%B8%E6%BF%80%E6%B4%BB%EF%BC%9F"><span class="nav-text">为什么不能走正常激活？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86%EF%BC%9AObjC-%E7%9A%84%E2%80%9D%E6%96%B9%E6%B3%95%E2%80%9D%E4%B8%8E%E2%80%9D%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E2%80%9D"><span class="nav-text">背景知识：ObjC 的”方法”与”成员变量”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Patch-1-hasLicense-%E6%96%B9%E6%B3%95%E5%A7%8B%E7%BB%88%E8%BF%94%E5%9B%9E-true"><span class="nav-text">Patch 1: hasLicense 方法始终返回 true</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Patch-2-hasLicense-%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E5%A7%8B%E7%BB%88%E8%AE%BE%E4%B8%BA-true"><span class="nav-text">Patch 2: _hasLicense 成员变量始终设为 true</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E5%A4%84-Patch-%E7%9A%84%E9%85%8D%E5%90%88%E5%85%B3%E7%B3%BB"><span class="nav-text">两处 Patch 的配合关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%8D%E6%96%B0%E7%AD%BE%E5%90%8D"><span class="nav-text">重新签名</span></a></li></ol></li></ol></div>
-        </div>
-        <!--/noindex-->
-
-        <div class="site-overview-wrap sidebar-panel">
-          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">CuO</p>
-  <div class="site-description" itemprop="description">Security Research & CTF Writeups</div>
-</div>
-<div class="site-state-wrap animated">
-  <nav class="site-state">
-      <div class="site-state-item site-state-posts">
-        <a href="/archives/">
-          <span class="site-state-item-count">7</span>
-          <span class="site-state-item-name">日志</span>
-        </a>
-      </div>
-      <div class="site-state-item site-state-categories">
-        <span class="site-state-item-count">2</span>
-        <span class="site-state-item-name">分类</span>
-      </div>
-      <div class="site-state-item site-state-tags">
-          <a href="/tags/">
-        <span class="site-state-item-count">19</span>
-        <span class="site-state-item-name">标签</span></a>
-      </div>
-  </nav>
-</div>
-  <div class="links-of-author animated">
-      <span class="links-of-author-item">
-        <a href="https://github.com/CuO-kokomi" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CuO-kokomi" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
-      </span>
-  </div>
-<div class="post-list-widget motion-element">
-  <div class="post-list-widget-title">
-    <i class="fa fa-folder-open"></i> 文章列表
-  </div>
-  <ul class="post-list-widget-list">
-    <li class="post-list-widget-item">
-      <a href="/2026/06/21/tapo-c200-root/" title="TP-Link Tapo C200 v5.0 固件安全研究">TP-Link Tapo C200 v5.0 固件安全研究</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/06/16/typora-license-bypass-windows/" title="Typora 激活逻辑逆向 (Windows)">Typora 激活逻辑逆向 (Windows)</a>
-    </li>
-    <li class="post-list-widget-item active">
-      <a href="/2026/06/13/typora-license-bypass-macos/" title="Typora 激活逻辑逆向 (macOS)">Typora 激活逻辑逆向 (macOS)</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/04/19/b01lersctf2026-transmutation/" title="b01lersCTF2026 transmutation">b01lersCTF2026 transmutation</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/04/12/dawgctf2026-just-print-it/" title="DawgCTF2026 Just Print It">DawgCTF2026 Just Print It</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/03/10/adrift/" title="HGAME2026 adrift">HGAME2026 adrift</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/03/06/Heap1sEz/" title="HGAME2026 Heap1sEz">HGAME2026 Heap1sEz</a>
-    </li>
-  </ul>
-</div>
-
-        </div>
-      </div>
-    </div>
-
-    
-  </aside>
-
-
     </div>
 
     <div class="main-inner post posts-expand">
@@ -572,12 +485,6 @@
   </footer>
 
   
-  <div class="toggle sidebar-toggle" role="button">
-    <span class="toggle-line"></span>
-    <span class="toggle-line"></span>
-    <span class="toggle-line"></span>
-  </div>
-  <div class="sidebar-dimmer"></div>
   <div class="back-to-top" role="button" aria-label="返回顶部">
     <i class="fa fa-arrow-up fa-lg"></i>
     <span>0%</span>
@@ -586,6 +493,14 @@
 <noscript>
   <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
 </noscript>
+
+<aside class="float-toc" aria-label="目录">
+  <div class="float-toc-title"><span class="ft-prompt">›</span> 目录</div>
+  <div class="float-toc-body">
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-text">基本信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B"><span class="toc-text">分析过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AE%9A%E4%BD%8D%E6%A0%B8%E5%BF%83%E7%B1%BB"><span class="toc-text">1. 定位核心类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%BF%80%E6%B4%BB%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88"><span class="toc-text">2. 激活流程概览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%AE%B8%E5%8F%AF%E8%AF%81%E6%A0%BC%E5%BC%8F"><span class="toc-text">3. 许可证格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%9C%A8%E7%BA%BF%E6%BF%80%E6%B4%BB"><span class="toc-text">4. 在线激活</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81"><span class="toc-text">5. 签名验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E6%9C%AC%E5%9C%B0%E5%AD%98%E5%82%A8"><span class="toc-text">6. 本地存储</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E8%AF%95%E7%94%A8%E6%9C%9F%E4%B8%8E-UI-%E6%8E%A7%E5%88%B6"><span class="toc-text">7. 试用期与 UI 控制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%95%E8%BF%87%E6%96%B9%E6%A1%88"><span class="toc-text">绕过方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E8%B5%B0%E6%AD%A3%E5%B8%B8%E6%BF%80%E6%B4%BB%EF%BC%9F"><span class="toc-text">为什么不能走正常激活？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86%EF%BC%9AObjC-%E7%9A%84%E2%80%9D%E6%96%B9%E6%B3%95%E2%80%9D%E4%B8%8E%E2%80%9D%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E2%80%9D"><span class="toc-text">背景知识：ObjC 的”方法”与”成员变量”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Patch-1-hasLicense-%E6%96%B9%E6%B3%95%E5%A7%8B%E7%BB%88%E8%BF%94%E5%9B%9E-true"><span class="toc-text">Patch 1: hasLicense 方法始终返回 true</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Patch-2-hasLicense-%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E5%A7%8B%E7%BB%88%E8%AE%BE%E4%B8%BA-true"><span class="toc-text">Patch 2: _hasLicense 成员变量始终设为 true</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E5%A4%84-Patch-%E7%9A%84%E9%85%8D%E5%90%88%E5%85%B3%E7%B3%BB"><span class="toc-text">两处 Patch 的配合关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E6%96%B0%E7%AD%BE%E5%90%8D"><span class="toc-text">重新签名</span></a></li></ol></li></ol>
+    <span class="toc-indicator"></span>
+  </div>
+</aside>
 <aside class="float-nav" aria-label="文章列表">
   <div class="float-nav-title"><span class="fn-prompt">›</span> 文章 <span class="fn-count">7</span></div>
   <ul class="float-nav-list">

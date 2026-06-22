@@ -58,24 +58,48 @@
     for (var j = 0; j < nodes.length; j++) io.observe(nodes[j]);
   }
 
-  // ---- C. TOC 滑动高亮条 ----
-  function initTocIndicator() {
-    var toc = document.querySelector('.post-toc');
+  // ---- C. 目录气泡：scroll-spy 高亮 + 滑动条 ----
+  function initFloatToc() {
+    var toc = document.querySelector('.float-toc');
     if (!toc) return;
-    var ind = document.createElement('span');
-    ind.className = 'toc-indicator';
-    ind.style.opacity = '0';
-    toc.appendChild(ind);
-    addScroll(function () {
-      var active = toc.querySelector('.nav-link.active-current') ||
-        toc.querySelector('.active > .nav-link');
-      if (!active) { ind.style.opacity = '0'; return; }
-      var top = active.offsetTop;
-      var node = active.offsetParent;
-      while (node && node !== toc) { top += node.offsetTop; node = node.offsetParent; }
+    var links = Array.prototype.slice.call(toc.querySelectorAll('.toc-link'));
+    if (!links.length) { toc.classList.add('is-empty'); return; }
+
+    var body = toc.querySelector('.float-toc-body');
+    var ind = toc.querySelector('.toc-indicator');
+
+    // 建立 链接 → 对应标题元素 的映射
+    var map = [];
+    links.forEach(function (a) {
+      var id = decodeURIComponent((a.getAttribute('href') || '').replace(/^#/, ''));
+      var h = id && document.getElementById(id);
+      if (h) map.push({ link: a, head: h });
+    });
+    if (!map.length) { toc.classList.add('is-empty'); return; }
+
+    function moveIndicator(link) {
+      if (!ind) return;
       ind.style.opacity = '1';
-      ind.style.top = top + 'px';
-      ind.style.height = active.offsetHeight + 'px';
+      ind.style.top = link.offsetTop + 'px';
+      ind.style.height = link.offsetHeight + 'px';
+    }
+
+    addScroll(function () {
+      var pos = (window.pageYOffset || document.documentElement.scrollTop) + 120;
+      var cur = map[0];
+      for (var i = 0; i < map.length; i++) {
+        if (map[i].head.offsetTop <= pos) cur = map[i]; else break;
+      }
+      links.forEach(function (a) { a.classList.remove('active'); });
+      cur.link.classList.add('active');
+      moveIndicator(cur.link);
+      // 让激活项在目录内可见
+      if (body) {
+        var lt = cur.link.offsetTop, lb = lt + cur.link.offsetHeight;
+        if (lt < body.scrollTop || lb > body.scrollTop + body.clientHeight) {
+          body.scrollTop = lt - body.clientHeight / 2;
+        }
+      }
     });
   }
 
@@ -83,7 +107,7 @@
     document.body.classList.add('js-enhanced');
     initProgressBar();
     initReveal();
-    initTocIndicator();
+    initFloatToc();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
   }

@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"cuo-kokomi.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"default"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"cuo-kokomi.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"remove","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"default"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
 
     <meta name="description" content="第一次接触 mprotect() 改页保护、再逐字节改自身代码的题目。本文记录用「自修改代码 + 单字节写循环」打通的完整思路。">
 <meta property="og:type" content="article">
@@ -54,7 +54,7 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
-<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/next-boot.js" defer></script>
 
   
 
@@ -116,93 +116,6 @@
 
 
 </header>
-        
-  
-  <aside class="sidebar">
-
-    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
-      <ul class="sidebar-nav">
-        <li class="sidebar-nav-toc">
-          文章目录
-        </li>
-        <li class="sidebar-nav-overview">
-          站点概览
-        </li>
-      </ul>
-
-      <div class="sidebar-panel-container">
-        <!--noindex-->
-        <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E5%88%86%E6%9E%90"><span class="nav-text">题目分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E7%BA%A6%E6%9D%9F"><span class="nav-text">核心约束</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E7%BC%96%E8%AF%91"><span class="nav-text">反编译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#chall-%E5%87%BD%E6%95%B0"><span class="nav-text">chall 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#main-%E5%87%BD%E6%95%B0"><span class="nav-text">main 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E5%9C%B0%E5%9D%80%E5%92%8C%E5%81%8F%E7%A7%BB"><span class="nav-text">关键地址和偏移</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E9%A2%98%E6%80%9D%E8%B7%AF"><span class="nav-text">解题思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%9B%B0%E5%A2%83"><span class="nav-text">核心困境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E5%8F%91%E7%8E%B0%EF%BC%9A%E8%AE%A9%E7%A8%8B%E5%BA%8F%E5%BE%AA%E7%8E%AF%E6%89%A7%E8%A1%8C"><span class="nav-text">关键发现：让程序循环执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A9%E5%A4%A7%E5%86%99%E5%85%A5%E8%8C%83%E5%9B%B4"><span class="nav-text">扩大写入范围</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E5%85%A5-shellcode"><span class="nav-text">写入 shellcode</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A6%E5%8F%91-shellcode"><span class="nav-text">触发 shellcode</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4-Exploit"><span class="nav-text">完整 Exploit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-text">执行流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="nav-text">关键知识点总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E4%BF%AE%E6%94%B9%E4%BB%A3%E7%A0%81%EF%BC%88Self-Modifying-Code%EF%BC%89"><span class="nav-text">自修改代码（Self-Modifying Code）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A7%E5%88%B6%E6%B5%81%E5%8A%AB%E6%8C%81"><span class="nav-text">控制流劫持</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#leave-%E6%8C%87%E4%BB%A4"><span class="nav-text">leave 指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#shellcode-%E7%BC%96%E5%86%99"><span class="nav-text">shellcode 编写</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flag"><span class="nav-text">Flag</span></a></li></ol></div>
-        </div>
-        <!--/noindex-->
-
-        <div class="site-overview-wrap sidebar-panel">
-          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">CuO</p>
-  <div class="site-description" itemprop="description">Security Research & CTF Writeups</div>
-</div>
-<div class="site-state-wrap animated">
-  <nav class="site-state">
-      <div class="site-state-item site-state-posts">
-        <a href="/archives/">
-          <span class="site-state-item-count">7</span>
-          <span class="site-state-item-name">日志</span>
-        </a>
-      </div>
-      <div class="site-state-item site-state-categories">
-        <span class="site-state-item-count">2</span>
-        <span class="site-state-item-name">分类</span>
-      </div>
-      <div class="site-state-item site-state-tags">
-          <a href="/tags/">
-        <span class="site-state-item-count">19</span>
-        <span class="site-state-item-name">标签</span></a>
-      </div>
-  </nav>
-</div>
-  <div class="links-of-author animated">
-      <span class="links-of-author-item">
-        <a href="https://github.com/CuO-kokomi" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CuO-kokomi" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
-      </span>
-  </div>
-<div class="post-list-widget motion-element">
-  <div class="post-list-widget-title">
-    <i class="fa fa-folder-open"></i> 文章列表
-  </div>
-  <ul class="post-list-widget-list">
-    <li class="post-list-widget-item">
-      <a href="/2026/06/21/tapo-c200-root/" title="TP-Link Tapo C200 v5.0 固件安全研究">TP-Link Tapo C200 v5.0 固件安全研究</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/06/16/typora-license-bypass-windows/" title="Typora 激活逻辑逆向 (Windows)">Typora 激活逻辑逆向 (Windows)</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/06/13/typora-license-bypass-macos/" title="Typora 激活逻辑逆向 (macOS)">Typora 激活逻辑逆向 (macOS)</a>
-    </li>
-    <li class="post-list-widget-item active">
-      <a href="/2026/04/19/b01lersctf2026-transmutation/" title="b01lersCTF2026 transmutation">b01lersCTF2026 transmutation</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/04/12/dawgctf2026-just-print-it/" title="DawgCTF2026 Just Print It">DawgCTF2026 Just Print It</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/03/10/adrift/" title="HGAME2026 adrift">HGAME2026 adrift</a>
-    </li>
-    <li class="post-list-widget-item">
-      <a href="/2026/03/06/Heap1sEz/" title="HGAME2026 Heap1sEz">HGAME2026 Heap1sEz</a>
-    </li>
-  </ul>
-</div>
-
-        </div>
-      </div>
-    </div>
-
-    
-  </aside>
-
-
     </div>
 
     <div class="main-inner post posts-expand">
@@ -597,12 +510,6 @@
   </footer>
 
   
-  <div class="toggle sidebar-toggle" role="button">
-    <span class="toggle-line"></span>
-    <span class="toggle-line"></span>
-    <span class="toggle-line"></span>
-  </div>
-  <div class="sidebar-dimmer"></div>
   <div class="back-to-top" role="button" aria-label="返回顶部">
     <i class="fa fa-arrow-up fa-lg"></i>
     <span>0%</span>
@@ -611,6 +518,14 @@
 <noscript>
   <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
 </noscript>
+
+<aside class="float-toc" aria-label="目录">
+  <div class="float-toc-title"><span class="ft-prompt">›</span> 目录</div>
+  <div class="float-toc-body">
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E5%88%86%E6%9E%90"><span class="toc-text">题目分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BA%A6%E6%9D%9F"><span class="toc-text">核心约束</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8D%E7%BC%96%E8%AF%91"><span class="toc-text">反编译</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#chall-%E5%87%BD%E6%95%B0"><span class="toc-text">chall 函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#main-%E5%87%BD%E6%95%B0"><span class="toc-text">main 函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%9C%B0%E5%9D%80%E5%92%8C%E5%81%8F%E7%A7%BB"><span class="toc-text">关键地址和偏移</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98%E6%80%9D%E8%B7%AF"><span class="toc-text">解题思路</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%9B%B0%E5%A2%83"><span class="toc-text">核心困境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%8F%91%E7%8E%B0%EF%BC%9A%E8%AE%A9%E7%A8%8B%E5%BA%8F%E5%BE%AA%E7%8E%AF%E6%89%A7%E8%A1%8C"><span class="toc-text">关键发现：让程序循环执行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%A4%A7%E5%86%99%E5%85%A5%E8%8C%83%E5%9B%B4"><span class="toc-text">扩大写入范围</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%99%E5%85%A5-shellcode"><span class="toc-text">写入 shellcode</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A6%E5%8F%91-shellcode"><span class="toc-text">触发 shellcode</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4-Exploit"><span class="toc-text">完整 Exploit</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-text">执行流程图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-text">关键知识点总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E4%BF%AE%E6%94%B9%E4%BB%A3%E7%A0%81%EF%BC%88Self-Modifying-Code%EF%BC%89"><span class="toc-text">自修改代码（Self-Modifying Code）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E6%B5%81%E5%8A%AB%E6%8C%81"><span class="toc-text">控制流劫持</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#leave-%E6%8C%87%E4%BB%A4"><span class="toc-text">leave 指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#shellcode-%E7%BC%96%E5%86%99"><span class="toc-text">shellcode 编写</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Flag"><span class="toc-text">Flag</span></a></li></ol>
+    <span class="toc-indicator"></span>
+  </div>
+</aside>
 <aside class="float-nav" aria-label="文章列表">
   <div class="float-nav-title"><span class="fn-prompt">›</span> 文章 <span class="fn-count">7</span></div>
   <ul class="float-nav-list">

@@ -22,16 +22,26 @@
     fn();
   }
 
-  // ---- A. 阅读进度条 ----
-  function initProgressBar() {
-    var bar = document.createElement('div');
-    bar.id = 'reading-progress';
-    document.body.appendChild(bar);
+  // ---- A. 环形滚动进度 + 返回顶部 ----
+  function initScrollRing() {
+    var btn = document.querySelector('.scroll-progress');
+    if (!btn) return;
+    var bar = btn.querySelector('.sp-bar');
+    var txt = btn.querySelector('.sp-text');
+    var C = 2 * Math.PI * 24; // r=24 的周长
+    bar.style.strokeDasharray = C;
+    bar.style.strokeDashoffset = C;
+    btn.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    });
     addScroll(function () {
       var h = document.documentElement;
       var max = (h.scrollHeight - h.clientHeight) || 1;
-      var p = Math.min(100, Math.max(0, (h.scrollTop || window.pageYOffset) / max * 100));
-      bar.style.width = p + '%';
+      var st = h.scrollTop || window.pageYOffset;
+      var p = Math.min(1, Math.max(0, st / max));
+      bar.style.strokeDashoffset = C * (1 - p);
+      txt.textContent = Math.round(p * 100);
+      btn.classList.toggle('show', st > 200);
     });
   }
 
@@ -135,7 +145,7 @@
 
   function init() {
     document.body.classList.add('js-enhanced');
-    initProgressBar();
+    initScrollRing();
     initReveal();
     initFloatToc();
     initNavFab();

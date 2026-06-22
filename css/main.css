@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #f6a2a3;
+  background: #f633cb;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2675,9 +2675,13 @@ main.main > .main-inner {
 }
 .menu .menu-item a {
   font-weight: 500;
+  font-size: 16px;
   color: #6e6b66;
   border-bottom: 2px solid transparent;
   transition: color 0.2s ease, border-color 0.2s ease;
+}
+.menu .menu-item a .fa {
+  font-size: 15px;
 }
 .menu .menu-item a:hover,
 .menu .menu-item-active a {

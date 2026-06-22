@@ -139,7 +139,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -149,7 +149,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-count">17</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -172,6 +172,9 @@
     </li>
     <li class="post-list-widget-item">
       <a href="/2026/06/13/typora-license-bypass-macos/" title="Typora 激活逻辑逆向 (macOS)">Typora 激活逻辑逆向 (macOS)</a>
+    </li>
+    <li class="post-list-widget-item">
+      <a href="/2026/04/12/dawgctf2026-just-print-it/" title="DawgCTF2026 Just Print It">DawgCTF2026 Just Print It</a>
     </li>
     <li class="post-list-widget-item">
       <a href="/2026/03/10/adrift/" title="HGAME2026 adrift">HGAME2026 adrift</a>
@@ -427,6 +430,91 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2026/06/13/typora-license-bypass-macos/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cuo-kokomi.github.io/2026/04/12/dawgctf2026-just-print-it/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CuO">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CuO">
+      <meta itemprop="description" content="Security Research & CTF Writeups">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | CuO">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/04/12/dawgctf2026-just-print-it/" class="post-title-link" itemprop="url">DawgCTF2026 Just Print It</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-04-12 12:00:00" itemprop="dateCreated datePublished" datetime="2026-04-12T12:00:00+08:00">2026-04-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CTF-Writeup/" itemprop="url" rel="index"><span itemprop="name">CTF Writeup</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>一道只给源码、不给二进制的格式化字符串题。本地自行编译后秒通，但远程 <code>win</code> 地址和本地编译产物对不上 —— 用同一个格式化字符串漏洞的任意读，把远程 <code>.text</code> 和 <code>.got.plt</code> 整段 dump 下来，找到真实地址后改写 <code>puts@GOT</code> 拿到 flag。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/04/12/dawgctf2026-just-print-it/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

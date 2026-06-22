@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #71917d;
+  background: #fff5ff;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2661,12 +2661,23 @@ body::before {
 .header {
   background: transparent;
 }
-.header-inner {
+main.main > .column {
   background: rgba(255,255,255,0.72);
   backdrop-filter: blur(14px) saturate(1.25);
   -webkit-backdrop-filter: blur(14px) saturate(1.25);
   border-bottom: 1px solid rgba(255,255,255,0.5);
   box-shadow: 0 2px 16px rgba(40,40,60,0.08);
+}
+@media (min-width: 992px) {
+  header.header {
+    position: relative;
+  }
+  header.header .site-nav {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+  }
 }
 .site-meta .brand {
   background: transparent;

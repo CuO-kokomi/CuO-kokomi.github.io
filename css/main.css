@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #fa9d3b;
+  background: #4fffb4;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2881,6 +2881,11 @@ main.main > .main-inner {
   padding: 0 6px 0 4px !important;
   text-align: right;
   margin: 0;
+}
+@media (max-width: 768px) {
+  .post-body figure.highlight .gutter {
+    display: none;
+  }
 }
 .post-body figure.highlight figcaption {
   color: #8a8780;

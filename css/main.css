@@ -1250,7 +1250,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #c2ac16;
+  background: #3c8adb;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2638,7 +2638,7 @@ main.main > .column {
   }
 }
 main.main > .main-inner {
-  padding-top: 18px;
+  padding-top: 24px;
 }
 .site-meta .brand {
   background: transparent;
@@ -3071,12 +3071,12 @@ figure.highlight:hover .copy-btn {
 .sp-track {
   fill: none;
   stroke: rgba(120,110,100,0.2);
-  stroke-width: 3;
+  stroke-width: 5;
 }
 .sp-bar {
   fill: none;
   stroke: #d97757;
-  stroke-width: 3;
+  stroke-width: 5;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.12s linear;
 }
@@ -3087,7 +3087,7 @@ figure.highlight:hover .copy-btn {
   align-items: center;
   justify-content: center;
   font-family: 'Maple Mono', 'JetBrains Mono', 'SF Mono', Consolas, Menlo, monospace;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #d97757;
 }

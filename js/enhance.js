@@ -40,7 +40,7 @@
       var st = h.scrollTop || window.pageYOffset;
       var p = Math.min(1, Math.max(0, st / max));
       bar.style.strokeDashoffset = C * (1 - p);
-      txt.textContent = Math.round(p * 100);
+      txt.textContent = Math.round(p * 100) + '%';
       btn.classList.toggle('show', st > 200);
     });
   }

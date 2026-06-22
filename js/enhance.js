@@ -103,11 +103,42 @@
     });
   }
 
+  // ---- D. 移动端浮空按钮 / 抽屉 ----
+  function initNavFab() {
+    var fab = document.querySelector('.nav-fab');
+    var backdrop = document.querySelector('.nav-backdrop');
+    var rail = document.querySelector('.float-rail');
+    if (!fab || !rail) return;
+    var icon = fab.querySelector('i');
+
+    function setOpen(open) {
+      document.body.classList.toggle('nav-open', open);
+      if (icon) {
+        icon.classList.toggle('fa-bars', !open);
+        icon.classList.toggle('fa-times', open);
+      }
+      fab.setAttribute('aria-label', open ? '关闭导航' : '打开导航');
+    }
+    fab.addEventListener('click', function () {
+      setOpen(!document.body.classList.contains('nav-open'));
+    });
+    if (backdrop) backdrop.addEventListener('click', function () { setOpen(false); });
+    // 点击抽屉内的链接后自动关闭
+    rail.addEventListener('click', function (e) {
+      if (e.target.closest('a')) setOpen(false);
+    });
+    // 回到桌面宽度时复位
+    window.addEventListener('resize', function () {
+      if (window.innerWidth >= 1280) setOpen(false);
+    }, { passive: true });
+  }
+
   function init() {
     document.body.classList.add('js-enhanced');
     initProgressBar();
     initReveal();
     initFloatToc();
+    initNavFab();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
   }

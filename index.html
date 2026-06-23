@@ -377,6 +377,96 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cuo-kokomi.github.io/2026/06/12/notch-claude-v5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CuO">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CuO">
+      <meta itemprop="description" content="Security Research & CTF Writeups">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | CuO">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/06/12/notch-claude-v5/" class="post-title-link" itemprop="url">把 Claude Code 塞进 MacBook 的刘海里：灵动岛 Claude v5.0 开发手记</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-06-12 00:00:00" itemprop="dateCreated datePublished" datetime="2026-06-12T00:00:00+08:00">2026-06-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">开发笔记</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>在用 Claude Code 的时候，经常遇到需要权限批准、或者跑长任务等结果的时候。于是我开发了一个常驻在 MacBook 刘海上的小面板，实时显示 Claude Code 在干什么：在思考、在跑命令、还是在等我回话。鼠标悬停展开，是一排我自己拼的组件；任务跑完，刘海会闪一下绿光告诉我「交回来了」。</p>
+<p><img src="/2026/06/12/notch-claude-v5/1.png" alt="收起态：贴着 notch 显示当前状态"></p>
+<p><img src="/2026/06/12/notch-claude-v5/image-20260623190112315.png" alt="展开态：一排自选组件，背后是原生玻璃质感"></p>
+<p><img src="/2026/06/12/notch-claude-v5/v4-complete.png" alt="任务完成：整条绿光脉冲 + 对勾"></p>
+<p>它最初只是个「看状态」的玩意儿。但 v5.0 我想把它从「看」推到「托管」——人离开电脑，多个 Claude Code 会话并行跑着，哪个要权限我在刘海上点一下就行，真正完成了才提醒我回来。</p>
+<p>这篇不讲功能清单（那是 README 的事），讲讲这一版我踩进去又爬出来的几个坑，以及每个坑底下那点没人会写进 release note 的机制细节。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/06/12/notch-claude-v5/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cuo-kokomi.github.io/2026/04/19/b01lersctf2026-transmutation/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -739,9 +829,9 @@
     <div class="fp-name">CuO</div>
     <div class="fp-bio">Security Research &amp; CTF Writeups</div>
     <div class="fp-stats">
-      <a href="/archives/"><b>7</b><span>日志</span></a>
-      <a href="/categories/"><b>2</b><span>分类</span></a>
-      <a href="/tags/"><b>19</b><span>标签</span></a>
+      <a href="/archives/"><b>8</b><span>日志</span></a>
+      <a href="/categories/"><b>3</b><span>分类</span></a>
+      <a href="/tags/"><b>22</b><span>标签</span></a>
     </div>
     <div class="fp-contact">
       <a href="mailto:3281881956@qq.com" title="QQ 邮箱"><i class="fa fa-envelope"></i> 3281881956@qq.com</a>
@@ -750,7 +840,7 @@
     </div>
   </aside>
   <aside class="float-nav" aria-label="文章列表">
-    <div class="float-nav-title"><span class="fn-prompt">›</span> 文章 <span class="fn-count">7</span></div>
+    <div class="float-nav-title"><span class="fn-prompt">›</span> 文章 <span class="fn-count">8</span></div>
     <ul class="float-nav-list">
       <li class="float-nav-item">
         <a href="/2026/06/21/tapo-c200-root/" title="TP-Link Tapo C200 v5.0 固件安全研究"><span class="fn-dot"></span>TP-Link Tapo C200 v5.0 固件安全研究</a>
@@ -760,6 +850,9 @@
       </li>
       <li class="float-nav-item">
         <a href="/2026/06/13/typora-license-bypass-macos/" title="Typora 激活逻辑逆向 (macOS)"><span class="fn-dot"></span>Typora 激活逻辑逆向 (macOS)</a>
+      </li>
+      <li class="float-nav-item">
+        <a href="/2026/06/12/notch-claude-v5/" title="把 Claude Code 塞进 MacBook 的刘海里：灵动岛 Claude v5.0 开发手记"><span class="fn-dot"></span>把 Claude Code 塞进 MacBook 的刘海里：灵动岛 Claude v5.0 开发手记</a>
       </li>
       <li class="float-nav-item">
         <a href="/2026/04/19/b01lersctf2026-transmutation/" title="b01lersCTF2026 transmutation"><span class="fn-dot"></span>b01lersCTF2026 transmutation</a>

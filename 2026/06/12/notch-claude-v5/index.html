@@ -19,12 +19,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"cuo-kokomi.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"remove","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"default"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="在用 Claude Code 的时候，经常遇到需要权限批准、或者跑长任务等结果的时候。于是我开发了一个常驻在 MacBook 刘海上的小面板，实时显示 Claude Code 在干什么：在思考、在跑命令、还是在等我回话。鼠标悬停展开，是一排我自己拼的组件；任务跑完，刘海会闪一下绿光告诉我「交回来了」。    它最初只是个「看状态」的玩意儿。但 v5.0 我想把它从「看」推到「托管」——人离开电脑，">
+    <meta name="description" content="在用 Claude Code 的时候，经常遇到需要权限批准、或者跑长任务等结果的时候。于是我开发了一个常驻在 MacBook 刘海上的小面板，实时显示 Claude Code 在干什么：在思考、在跑命令、还是在等我回话。鼠标悬停展开，是一排我自己拼的组件；任务跑完，刘海会闪一下绿光告诉我「交回来了」。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="把 Claude Code 塞进 MacBook 的刘海里：灵动岛 Claude v5.0 开发手记">
 <meta property="og:url" content="https://cuo-kokomi.github.io/2026/06/12/notch-claude-v5/index.html">
 <meta property="og:site_name" content="CuO">
-<meta property="og:description" content="在用 Claude Code 的时候，经常遇到需要权限批准、或者跑长任务等结果的时候。于是我开发了一个常驻在 MacBook 刘海上的小面板，实时显示 Claude Code 在干什么：在思考、在跑命令、还是在等我回话。鼠标悬停展开，是一排我自己拼的组件；任务跑完，刘海会闪一下绿光告诉我「交回来了」。    它最初只是个「看状态」的玩意儿。但 v5.0 我想把它从「看」推到「托管」——人离开电脑，">
+<meta property="og:description" content="在用 Claude Code 的时候，经常遇到需要权限批准、或者跑长任务等结果的时候。于是我开发了一个常驻在 MacBook 刘海上的小面板，实时显示 Claude Code 在干什么：在思考、在跑命令、还是在等我回话。鼠标悬停展开，是一排我自己拼的组件；任务跑完，刘海会闪一下绿光告诉我「交回来了」。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/12/notch-claude-v5/1.png">
 <meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/12/notch-claude-v5/image-20260623190112315.png">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/12/notch-claude-v5/image-20260623190654645.png">
 <meta property="og:image" content="https://cuo-kokomi.github.io/2026/06/12/notch-claude-v5/image-20260623190112315.png">
 <meta property="article:published_time" content="2026-06-11T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-23T13:13:03.722Z">
+<meta property="article:modified_time" content="2026-06-23T13:17:29.089Z">
 <meta property="article:author" content="CuO">
 <meta property="article:tag" content="AppKit">
 <meta property="article:tag" content="Claude Code">
@@ -187,13 +187,13 @@
     
     
     <div class="post-body" itemprop="articleBody"><p>在用 Claude Code 的时候，经常遇到需要权限批准、或者跑长任务等结果的时候。于是我开发了一个常驻在 MacBook 刘海上的小面板，实时显示 Claude Code 在干什么：在思考、在跑命令、还是在等我回话。鼠标悬停展开，是一排我自己拼的组件；任务跑完，刘海会闪一下绿光告诉我「交回来了」。</p>
+<span id="more"></span>
+
 <p><img src="/2026/06/12/notch-claude-v5/1.png" alt="收起态：贴着 notch 显示当前状态"></p>
 <p><img src="/2026/06/12/notch-claude-v5/image-20260623190112315.png" alt="展开态：一排自选组件，背后是原生玻璃质感"></p>
 <p><img src="/2026/06/12/notch-claude-v5/v4-complete.png" alt="任务完成：整条绿光脉冲 + 对勾"></p>
 <p>它最初只是个「看状态」的玩意儿。但 v5.0 我想把它从「看」推到「托管」——人离开电脑，多个 Claude Code 会话并行跑着，哪个要权限我在刘海上点一下就行，真正完成了才提醒我回来。</p>
 <p>这篇不讲功能清单（那是 README 的事），讲讲这一版我踩进去又爬出来的几个坑，以及每个坑底下那点没人会写进 release note 的机制细节。</p>
-<span id="more"></span>
-
 <h2 id="一、在刘海上批准权限：让一个-hook「挂起」"><a href="#一、在刘海上批准权限：让一个-hook「挂起」" class="headerlink" title="一、在刘海上批准权限：让一个 hook「挂起」"></a>一、在刘海上批准权限：让一个 hook「挂起」</h2><p>灵感来自一个叫 clawd-on-desk 的桌宠项目。我扒它的实现时发现 Claude Code 有个我没用过的能力：<strong>PermissionRequest 可以配成 HTTP hook</strong>，而不是普通的 command hook。</p>
 <p>这个区别是整件事的关键。普通 command hook 是「触发即返回」——Claude Code 调一下你的脚本，拿到 stdout，继续。但权限审批的语义是<strong>阻塞</strong>的：Claude Code 问「能跑 <code>git push</code> 吗？」，然后<strong>停在那里等答复</strong>。要在刘海上接住它，我需要一个能「先收下请求、过几秒再回复」的通道。HTTP hook 给的正是这个——它会 POST 请求体过来，然后<strong>同步等待我的 HTTP 响应</strong>。在 <code>~/.claude/settings.json</code> 里长这样：</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;PermissionRequest&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;matcher&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span> <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;http&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;url&quot;</span><span class="punctuation">:</span> <span class="string">&quot;http://127.0.0.1:23889/permission&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;timeout&quot;</span><span class="punctuation">:</span> <span class="number">600</span> <span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
